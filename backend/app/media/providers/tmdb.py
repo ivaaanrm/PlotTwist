@@ -60,13 +60,13 @@ class TMDBProvider:
                 genres=[],
             )
             for item in data.get("results", [])
-        ]
+        ][:5]
 
         return MediaSearchResponse(
             results=results,
             page=data.get("page", 1),
-            total_pages=data.get("total_pages", 1),
-            total_results=data.get("total_results", 0),
+            total_pages=1,
+            total_results=len(results),
         )
 
     async def get_details(

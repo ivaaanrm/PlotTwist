@@ -17,34 +17,36 @@ def get_feed_watched_media(
     followed_ids = follows_service.get_followed_user_ids(
         session=session, user_id=user_id
     )
-    if not followed_ids:
-        return [], 0
+
+    # Include own user id alongside followed users
+    feed_user_ids = list(followed_ids) + [user_id]
 
     count_stmt = (
         select(func.count())
         .select_from(CollectionItem)
         .where(
-            col(CollectionItem.user_id).in_(followed_ids),
+            col(CollectionItem.user_id).in_(feed_user_ids),
             CollectionItem.collection_name == "watched",
         )
     )
     count = session.exec(count_stmt).one()
 
     stmt = (
-        select(CollectionItem)
+        select(User, CollectionItem)
+        .join(User, col(CollectionItem.user_id) == col(User.id))
         .where(
-            col(CollectionItem.user_id).in_(followed_ids),
+            col(CollectionItem.user_id).in_(feed_user_ids),
             CollectionItem.collection_name == "watched",
         )
         .order_by(col(CollectionItem.created_at).desc())
         .offset(skip)
         .limit(limit)
     )
-    collection_items = session.exec(stmt).all()
+    rows = session.exec(stmt).all()
 
     result: list[tuple[User, CollectionItem]] = []
-    for item in collection_items:
-        user = session.get(User, item.user_id)
-        if user:
-            result.append((user, item))
+    for user, item in rows:
+        # Eagerly access media so it's loaded before leaving the session
+        _ = item.media
+        result.append((user, item))
     return result, count

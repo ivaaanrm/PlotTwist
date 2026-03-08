@@ -214,10 +214,38 @@ function normalizeUserProfile(profile: BackendUserProfile): UserProfile {
   }
 }
 
+export type FeedItemPublic = {
+  user: UserPublic
+  collection_item: BackendCollectionItemPublic
+}
+
+export type FeedPublic = {
+  data: FeedItemPublic[]
+  count: number
+}
+
 export const MovieDomainService = {
+  getFeed(data?: {
+    skip?: number
+    limit?: number
+  }): CancelablePromise<FeedPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/feed/",
+      query: {
+        skip: data?.skip ?? 0,
+        limit: data?.limit ?? 50,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  },
+
   searchMovies(data: {
     query: string
     page?: number
+    media_type?: MediaType
   }): CancelablePromise<MovieSearchResponse> {
     return __request(OpenAPI, {
       method: "GET",
@@ -225,6 +253,7 @@ export const MovieDomainService = {
       query: {
         query: data.query,
         page: data.page ?? 1,
+        media_type: data.media_type ?? "movie",
       },
       errors: {
         400: "Bad Request",

@@ -1,17 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { Calendar, Check, Clock, Film, Plus, Search, Star } from "lucide-react"
+import {
+  Calendar,
+  Check,
+  Clock,
+  Film,
+  Monitor,
+  Plus,
+  Search,
+  Star,
+  Tv,
+} from "lucide-react"
 import { type FormEvent, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -31,13 +33,14 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   MovieDomainService,
+  type MediaType,
   type MovieSearchResult,
 } from "@/features/movie-domain/api"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/discover")({
-  component: Items,
+  component: Discover,
   head: () => ({
     meta: [
       {
@@ -59,22 +62,21 @@ function getPosterUrl(posterPath?: string | null) {
 
 function formatReleaseDate(value?: string | null) {
   if (!value) {
-    return "Unknown release date"
+    return "Unknown"
   }
 
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) {
-    return "Unknown release date"
+    return "Unknown"
   }
 
   return date.toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
-    day: "numeric",
   })
 }
 
-type DiscoverMovieCardProps = {
+type DiscoverCardProps = {
   movie: MovieSearchResult
   isInWatchlist: boolean
   isWatched: boolean
@@ -84,7 +86,7 @@ type DiscoverMovieCardProps = {
   onMarkAsWatched: (tmdbId: number, rating: number | null) => void
 }
 
-function DiscoverMovieCard({
+function DiscoverCard({
   movie,
   isInWatchlist,
   isWatched,
@@ -92,7 +94,7 @@ function DiscoverMovieCard({
   isMarkingWatched,
   onAddToWatchlist,
   onMarkAsWatched,
-}: DiscoverMovieCardProps) {
+}: DiscoverCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedRating, setSelectedRating] = useState("none")
   const posterUrl = getPosterUrl(movie.poster_path)
@@ -104,139 +106,161 @@ function DiscoverMovieCard({
   }
 
   return (
-    <Card className="overflow-hidden py-0 gap-0">
-      <div className="aspect-[2/3] w-full bg-muted/50 relative">
-        {posterUrl ? (
-          <img
-            src={posterUrl}
-            alt={`${movie.title} poster`}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Film className="size-12 text-muted-foreground" />
-          </div>
-        )}
-      </div>
-
-      <CardHeader className="pb-4">
-        <CardTitle className="line-clamp-2 text-base">{movie.title}</CardTitle>
-        <CardDescription className="flex items-center gap-2">
-          <Calendar className="size-4" />
-          {formatReleaseDate(movie.release_date)}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-3">
-        {typeof movie.rating === "number" && (
-          <Badge variant="secondary" className="gap-1">
-            <Star className="size-3.5 fill-current" />
-            TMDB {movie.rating.toFixed(1)}
-          </Badge>
-        )}
-        <p className="text-sm text-muted-foreground line-clamp-4">
-          {movie.overview || "No synopsis available yet."}
-        </p>
-      </CardContent>
-
-      <CardFooter className="mt-auto flex-col items-stretch gap-2 pt-4">
-        <LoadingButton
-          variant="outline"
-          loading={isAddingToWatchlist}
-          disabled={isInWatchlist || isWatched || isMarkingWatched}
-          onClick={() => onAddToWatchlist(movie.external_id)}
-          className="w-full"
-        >
-          {isInWatchlist ? (
-            <>
-              <Clock className="size-4" />
-              In Watchlist
-            </>
+    <>
+      <article className="group flex rounded-xl border bg-card overflow-hidden h-32 transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20">
+        {/* Poster — left side, full height */}
+        <div className="w-[86px] shrink-0 bg-muted/30">
+          {posterUrl ? (
+            <img
+              src={posterUrl}
+              alt={`${movie.title} poster`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
           ) : (
-            <>
-              <Plus className="size-4" />
-              Add to Watchlist
-            </>
-          )}
-        </LoadingButton>
-
-        <Button
-          variant={isWatched ? "secondary" : "default"}
-          disabled={isWatched || isMarkingWatched}
-          onClick={() => setIsDialogOpen(true)}
-          className="w-full"
-        >
-          {isWatched ? (
-            <>
-              <Check className="size-4" />
-              Watched
-            </>
-          ) : (
-            <>
-              <Star className="size-4" />
-              Mark as Watched
-            </>
-          )}
-        </Button>
-
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Mark as watched</DialogTitle>
-              <DialogDescription>
-                Optionally rate{" "}
-                <span className="font-medium">{movie.title}</span>.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Select value={selectedRating} onValueChange={setSelectedRating}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a rating (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No rating</SelectItem>
-                  {ratingOptions.map((rating) => (
-                    <SelectItem key={rating} value={rating.toString()}>
-                      {rating.toFixed(1)} / 5
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <LoadingButton
-                className="w-full"
-                loading={isMarkingWatched}
-                onClick={handleMarkAsWatched}
-              >
-                Confirm watched
-              </LoadingButton>
+            <div className="flex h-full w-full items-center justify-center">
+              <Film className="size-6 text-muted-foreground/30" />
             </div>
-          </DialogContent>
-        </Dialog>
-      </CardFooter>
-    </Card>
+          )}
+        </div>
+
+        {/* Info — right side */}
+        <div className="flex min-w-0 flex-1 flex-col justify-between p-3">
+          {/* Top: title + rating */}
+          <div>
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-semibold text-sm leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                {movie.title}
+              </h3>
+              {typeof movie.rating === "number" && (
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <Star className="size-3 fill-amber-500 text-amber-500 dark:fill-amber-400 dark:text-amber-400" />
+                  <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                    {movie.rating.toFixed(1)}
+                  </span>
+                </div>
+              )}
+            </div>
+            {/* Meta row */}
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[11px] text-muted-foreground inline-flex items-center gap-0.5">
+                <Calendar className="size-2.5" />
+                {formatReleaseDate(movie.release_date)}
+              </span>
+              <Badge
+                variant="outline"
+                className="text-[9px] px-1.5 py-0 rounded-full h-4"
+              >
+                {movie.media_type === "series" ? "Series" : "Movie"}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-1.5 mt-auto">
+            <LoadingButton
+              variant="outline"
+              size="sm"
+              loading={isAddingToWatchlist}
+              disabled={isInWatchlist || isWatched || isMarkingWatched}
+              onClick={() => onAddToWatchlist(movie.external_id)}
+              className="rounded-full text-[11px] h-7 px-2.5"
+            >
+              {isInWatchlist ? (
+                <>
+                  <Clock className="size-3" />
+                  In Watchlist
+                </>
+              ) : (
+                <>
+                  <Plus className="size-3" />
+                  Watchlist
+                </>
+              )}
+            </LoadingButton>
+
+            <Button
+              variant={isWatched ? "secondary" : "default"}
+              size="sm"
+              disabled={isWatched || isMarkingWatched}
+              onClick={() => setIsDialogOpen(true)}
+              className="rounded-full text-[11px] h-7 px-2.5"
+            >
+              {isWatched ? (
+                <>
+                  <Check className="size-3" />
+                  Watched
+                </>
+              ) : (
+                <>
+                  <Star className="size-3" />
+                  Watched
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </article>
+
+      {/* Rating dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark as watched</DialogTitle>
+            <DialogDescription>
+              Optionally rate{" "}
+              <span className="font-medium">{movie.title}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={selectedRating} onValueChange={setSelectedRating}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a rating (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No rating</SelectItem>
+                {ratingOptions.map((rating) => (
+                  <SelectItem key={rating} value={rating.toString()}>
+                    {rating.toFixed(1)} / 5
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <LoadingButton
+              className="w-full"
+              loading={isMarkingWatched}
+              onClick={handleMarkAsWatched}
+            >
+              Confirm watched
+            </LoadingButton>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
-function DiscoverGridSkeleton() {
+function DiscoverSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, index) => (
-        <Card key={index} className="overflow-hidden py-0 gap-0">
-          <Skeleton className="aspect-[2/3] w-full rounded-none" />
-          <CardHeader className="space-y-2">
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-2/3" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-14 w-full" />
-          </CardContent>
-          <CardFooter className="flex-col items-stretch gap-2">
-            <Skeleton className="h-9 w-full" />
-            <Skeleton className="h-9 w-full" />
-          </CardFooter>
-        </Card>
+    <div className="space-y-3">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex rounded-xl border bg-card overflow-hidden h-32"
+        >
+          <Skeleton className="w-[86px] h-full rounded-none" />
+          <div className="flex-1 p-3 flex flex-col justify-between">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-3/5" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+            <div className="flex gap-1.5">
+              <Skeleton className="h-7 w-24 rounded-full" />
+              <Skeleton className="h-7 w-20 rounded-full" />
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   )
@@ -244,13 +268,13 @@ function DiscoverGridSkeleton() {
 
 function SearchEmptyState() {
   return (
-    <div className="rounded-xl border bg-card p-10 text-center">
-      <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-muted">
-        <Search className="size-6 text-muted-foreground" />
+    <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-16 text-center">
+      <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-sm">
+        <Search className="size-7 text-primary/70" />
       </div>
-      <h3 className="text-lg font-semibold">Search for a movie</h3>
-      <p className="text-sm text-muted-foreground mt-2">
-        Find a title and add it to your watchlist or mark it as watched.
+      <h3 className="text-lg font-bold mb-1.5">Search for a title</h3>
+      <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
+        Find movies or series and add them to your watchlist or mark as watched.
       </p>
     </div>
   )
@@ -258,25 +282,25 @@ function SearchEmptyState() {
 
 function NoResultsState({ query }: { query: string }) {
   return (
-    <div className="rounded-xl border bg-card p-10 text-center">
-      <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-muted">
-        <Film className="size-6 text-muted-foreground" />
+    <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-16 text-center">
+      <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-sm">
+        <Film className="size-7 text-muted-foreground/60" />
       </div>
-      <h3 className="text-lg font-semibold">No results for "{query}"</h3>
-      <p className="text-sm text-muted-foreground mt-2">
+      <h3 className="text-lg font-bold mb-1.5">No results for "{query}"</h3>
+      <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
         Try another title or a broader keyword.
       </p>
     </div>
   )
 }
 
-function Items() {
+function Discover() {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const [searchInput, setSearchInput] = useState("")
   const [query, setQuery] = useState("")
-  const [page, setPage] = useState(1)
+  const [mediaType, setMediaType] = useState<MediaType>("movie")
   const [watchlistActionTmdbId, setWatchlistActionTmdbId] = useState<
     number | null
   >(null)
@@ -288,11 +312,11 @@ function Items() {
   const hasSearchQuery = normalizedQuery.length > 0
 
   const searchQuery = useQuery({
-    queryKey: ["movies", "search", normalizedQuery, page],
+    queryKey: ["movies", "search", normalizedQuery, mediaType],
     queryFn: () =>
       MovieDomainService.searchMovies({
         query: normalizedQuery,
-        page,
+        media_type: mediaType,
       }),
     enabled: hasSearchQuery,
   })
@@ -331,9 +355,12 @@ function Items() {
 
   const addToWatchlistMutation = useMutation({
     mutationFn: (tmdbId: number) =>
-      MovieDomainService.addToWatchlist({ tmdb_id: tmdbId }),
+      MovieDomainService.addToWatchlist({
+        tmdb_id: tmdbId,
+        media_type: mediaType,
+      }),
     onSuccess: () => {
-      showSuccessToast("Movie added to watchlist")
+      showSuccessToast("Added to watchlist")
     },
     onError: handleError.bind(showErrorToast),
     onSettled: async () => {
@@ -347,10 +374,11 @@ function Items() {
     mutationFn: (payload: { tmdbId: number; rating: number | null }) =>
       MovieDomainService.markAsWatched({
         tmdb_id: payload.tmdbId,
+        media_type: mediaType,
         rating: payload.rating,
       }),
     onSuccess: () => {
-      showSuccessToast("Movie marked as watched")
+      showSuccessToast("Marked as watched")
     },
     onError: handleError.bind(showErrorToast),
     onSettled: async () => {
@@ -358,12 +386,12 @@ function Items() {
       await queryClient.invalidateQueries({ queryKey: ["movies", "watched"] })
       await queryClient.invalidateQueries({ queryKey: ["movies", "watchlist"] })
       await queryClient.invalidateQueries({ queryKey: ["profile"] })
+      await queryClient.invalidateQueries({ queryKey: ["feed"] })
     },
   })
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setPage(1)
     setQuery(searchInput.trim())
   }
 
@@ -378,34 +406,75 @@ function Items() {
   }
 
   const isLoadingResults = searchQuery.isLoading || searchQuery.isFetching
-  const totalPages = searchQuery.data?.total_pages ?? 1
-  const canGoToPrevious = page > 1
-  const canGoToNext = page < totalPages
   const searchErrorMessage =
-    searchQuery.error?.message ?? "Could not load movies."
+    searchQuery.error?.message ?? "Could not load results."
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Discover</h1>
-        <p className="text-muted-foreground">
-          Search movies and track what you want to watch next.
+    <div className="flex flex-col gap-5 max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="space-y-0.5">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+          Discover
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Search movies and series to track what you watch.
         </p>
       </div>
 
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <Input
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Search by title..."
-          aria-label="Search movies by title"
-        />
-        <Button type="submit" disabled={!searchInput.trim()}>
-          <Search className="size-4" />
-          Search
-        </Button>
-      </form>
+      {/* Search + Type toggle */}
+      <div className="space-y-3">
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <Input
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder={`Search ${mediaType === "series" ? "series" : "movies"} by title...`}
+            aria-label="Search by title"
+            className="rounded-xl"
+          />
+          <Button
+            type="submit"
+            disabled={!searchInput.trim()}
+            className="rounded-xl"
+          >
+            <Search className="size-4" />
+            <span className="hidden sm:inline">Search</span>
+          </Button>
+        </form>
 
+        {/* Movie / Series toggle */}
+        <div className="flex gap-1.5 p-1 rounded-xl bg-muted/50 w-fit">
+          <button
+            type="button"
+            onClick={() => {
+              setMediaType("movie")
+              if (hasSearchQuery) setQuery(query)
+            }}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${mediaType === "movie"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+              }`}
+          >
+            <Monitor className="size-3.5" />
+            Movies
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMediaType("series")
+              if (hasSearchQuery) setQuery(query)
+            }}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${mediaType === "series"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+              }`}
+          >
+            <Tv className="size-3.5" />
+            Series
+          </button>
+        </div>
+      </div>
+
+      {/* Results */}
       {!hasSearchQuery && <SearchEmptyState />}
 
       {hasSearchQuery && searchQuery.isError && (
@@ -414,7 +483,7 @@ function Items() {
         </div>
       )}
 
-      {hasSearchQuery && isLoadingResults && <DiscoverGridSkeleton />}
+      {hasSearchQuery && isLoadingResults && <DiscoverSkeleton />}
 
       {hasSearchQuery &&
         !isLoadingResults &&
@@ -428,22 +497,18 @@ function Items() {
         searchQuery.data &&
         searchQuery.data.results.length > 0 && (
           <>
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {searchQuery.data.total_results.toLocaleString()} results
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Page {searchQuery.data.page} of {searchQuery.data.total_pages}
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <p className="text-xs text-muted-foreground">
+              {searchQuery.data.total_results} result
+              {searchQuery.data.total_results !== 1 ? "s" : ""}
+            </p>
+            <div className="space-y-3">
               {searchQuery.data.results.map((movie) => {
                 const tmdbId = movie.external_id
                 const isInWatchlist = watchlistByTmdbId.has(tmdbId)
                 const isWatched = watchedByTmdbId.has(tmdbId)
 
                 return (
-                  <DiscoverMovieCard
+                  <DiscoverCard
                     key={movie.external_id}
                     movie={movie}
                     isInWatchlist={isInWatchlist}
@@ -462,32 +527,10 @@ function Items() {
                 )
               })}
             </div>
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPage((current) => Math.max(current - 1, 1))}
-                disabled={!canGoToPrevious || searchQuery.isFetching}
-              >
-                Previous
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() =>
-                  setPage((current) =>
-                    Math.min(current + 1, searchQuery.data.total_pages),
-                  )
-                }
-                disabled={!canGoToNext || searchQuery.isFetching}
-              >
-                Next
-              </Button>
-            </div>
           </>
         )}
     </div>
   )
 }
 
-export default Items
+export default Discover
