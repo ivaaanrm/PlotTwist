@@ -23,7 +23,8 @@ async def search_movies(
     if not query.strip():
         raise EmptyQueryError()
 
-    return await provider.search(
+    return await media_service.search_media(
+        provider=provider,
         query=query,
         media_type=media_type,
         page=page,
@@ -39,16 +40,9 @@ async def get_movie(
     media_type: MediaType = MediaType.movie,
 ) -> Any:
     """Get media details. Fetches from provider and caches if not in DB."""
-    media = media_service.get_media_by_tmdb_id(
+    return await media_service.get_and_cache_media(
         session=session,
+        provider=provider,
         tmdb_id=tmdb_id,
         media_type=media_type,
     )
-    if media:
-        return media
-
-    details = await provider.get_details(
-        external_id=tmdb_id,
-        media_type=media_type,
-    )
-    return media_service.get_or_create_media(session=session, details=details)

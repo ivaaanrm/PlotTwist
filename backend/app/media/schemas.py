@@ -1,10 +1,41 @@
 import uuid
 from datetime import date, datetime
 
+from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
 from app.media.models import MediaType
-from app.media.provider import MediaSearchResponse
+
+
+class MediaSearchResult(BaseModel):
+    external_id: int
+    media_type: MediaType
+    title: str
+    overview: str | None = None
+    poster_path: str | None = None
+    backdrop_path: str | None = None
+    release_date: date | None = None
+    rating: float | None = None
+    genres: list[str] = []
+
+
+class MediaDetails(BaseModel):
+    external_id: int
+    media_type: MediaType
+    title: str
+    overview: str | None = None
+    poster_path: str | None = None
+    backdrop_path: str | None = None
+    release_date: date | None = None
+    rating: float | None = None
+    genres: list[str] = []
+
+
+class MediaSearchResponse(BaseModel):
+    results: list[MediaSearchResult]
+    page: int
+    total_pages: int
+    total_results: int
 
 
 class MediaBase(SQLModel):
@@ -26,4 +57,11 @@ class MediaPublic(MediaBase):
 
 MoviePublic = MediaPublic
 
-__all__ = ["MediaPublic", "MediaSearchResponse", "MediaType", "MoviePublic"]
+__all__ = [
+    "MediaPublic",
+    "MediaSearchResponse",
+    "MediaType",
+    "MoviePublic",
+    "MediaSearchResult",
+    "MediaDetails",
+]

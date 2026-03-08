@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import Depends
 
 from app.media.config import tmdb_settings
-from app.media.provider import MediaProvider
-from app.media.tmdb import TMDBProvider
+from app.media.providers.base import MediaProvider
+from app.media.providers.tmdb import TMDBProvider
 
 
 def get_media_provider() -> MediaProvider:

@@ -1,26 +1,15 @@
 from __future__ import annotations
 
-from datetime import date
-
 import httpx
 
 from app.media.models import MediaType
-from app.media.provider import (
+from app.media.providers.base import MediaProvider
+from app.media.schemas import (
     MediaDetails,
-    MediaProvider,
     MediaSearchResponse,
     MediaSearchResult,
 )
-
-
-def _parse_date(date_str: str | None) -> date | None:
-    if not date_str:
-        return None
-    try:
-        return date.fromisoformat(date_str)
-    except ValueError:
-        return None
-
+from app.media.utils import parse_date
 
 _TMDB_PATHS = {
     MediaType.movie: {"search": "/search/movie", "details": "/movie"},
@@ -64,7 +53,7 @@ class TMDBProvider:
                 overview=item.get("overview"),
                 poster_path=item.get("poster_path"),
                 backdrop_path=item.get("backdrop_path"),
-                release_date=_parse_date(
+                release_date=parse_date(
                     item.get("release_date") or item.get("first_air_date")
                 ),
                 rating=item.get("vote_average"),
@@ -99,7 +88,7 @@ class TMDBProvider:
             overview=data.get("overview"),
             poster_path=data.get("poster_path"),
             backdrop_path=data.get("backdrop_path"),
-            release_date=_parse_date(
+            release_date=parse_date(
                 data.get("release_date") or data.get("first_air_date")
             ),
             rating=data.get("vote_average"),
