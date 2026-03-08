@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel
 
+from app.collections.watched.schemas import WatchedMediaPublic
 from app.users.schemas import UserPublic
-from app.watched.schemas import WatchedMediaPublic
 
 
 class FeedItem(SQLModel):

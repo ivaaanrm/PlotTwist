@@ -5,15 +5,15 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app import models  # noqa: F401
 from app.auth.router import router as auth_router
+from app.collections.watched.router import router as watched_router
+from app.collections.watchlist.router import router as watchlist_router
 from app.config import settings
 from app.feed.router import router as feed_router
-from app.follows.router import router as follows_router
 from app.media.router import router as media_router
 from app.system.private_router import router as private_router
 from app.system.router import router as system_router
+from app.users.follows.router import router as follows_router
 from app.users.router import router as users_router
-from app.watched.router import router as watched_router
-from app.watchlist.router import router as watchlist_router
 
 SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 

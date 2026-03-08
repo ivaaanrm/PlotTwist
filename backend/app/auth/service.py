@@ -5,10 +5,10 @@ from sqlmodel import Session
 
 from app.auth.utils import (
     generate_password_reset_token,
-    generate_reset_password_email,
-    send_email,
     verify_password_reset_token,
 )
+from app.notifications.email.service import send_email
+from app.notifications.email.utils import generate_reset_password_email
 from app.config import settings
 from app.core import security
 from app.users import service as users_service

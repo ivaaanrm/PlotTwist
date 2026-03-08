@@ -4,7 +4,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.core.config import settings
+from app.config import settings
 from app.core.security import verify_password
 from app.models import User, UserCreate
 from app.users import service as users_service
@@ -39,8 +39,8 @@ def test_create_user_new_email(
 ) -> None:
     with (
         patch("app.users.router.send_email", return_value=None),
-        patch("app.core.config.settings.SMTP_HOST", "smtp.example.com"),
-        patch("app.core.config.settings.SMTP_USER", "admin@example.com"),
+        patch("app.config.settings.SMTP_HOST", "smtp.example.com"),
+        patch("app.config.settings.SMTP_USER", "admin@example.com"),
     ):
         username = random_email()
         password = random_lower_string()

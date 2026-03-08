@@ -4,7 +4,10 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
-from app.auth.utils import generate_new_account_email, send_email
+from app.notifications.email.service import send_email
+from app.notifications.email.utils import generate_new_account_email
+from app.collections.watched import service as watched_service
+from app.collections.watchlist import service as watchlist_service
 from app.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.users import dependencies as users_dependencies
@@ -22,8 +25,6 @@ from app.users.schemas import (
     WatchedMediaPublic,
     WatchlistItemPublic,
 )
-from app.watched import service as watched_service
-from app.watchlist import service as watchlist_service
 
 router = APIRouter(prefix="/users", tags=["users"])
 

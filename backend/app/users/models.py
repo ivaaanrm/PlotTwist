@@ -7,8 +7,8 @@ from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.watched.models import WatchedMedia
-    from app.watchlist.models import WatchlistItem
+    from app.collections.watched.models import WatchedMedia
+    from app.collections.watchlist.models import WatchlistItem
 
 
 def get_datetime_utc() -> datetime:

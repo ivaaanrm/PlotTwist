@@ -4,8 +4,8 @@ from datetime import datetime
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
-from app.watched.schemas import WatchedMediaPublic
-from app.watchlist.schemas import WatchlistItemPublic
+from app.collections.watched.schemas import WatchedMediaPublic
+from app.collections.watchlist.schemas import WatchlistItemPublic
 
 
 class UserBase(SQLModel):

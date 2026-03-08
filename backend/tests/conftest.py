@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, delete
 
-from app.core.config import settings
-from app.core.db import engine, init_db
+from app.config import settings
+from app.database import engine, init_db
 from app.main import app
 from app.models import Follow, Media, User, WatchedMedia, WatchlistItem
 from tests.utils.user import authentication_token_from_email

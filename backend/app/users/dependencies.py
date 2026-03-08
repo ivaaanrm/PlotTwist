@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 
 from app.auth.dependencies import CurrentUser, SessionDep
-from app.follows import service as follows_service
-from app.follows.models import FollowStatus
 from app.users import service as users_service
+from app.users.follows import service as follows_service
+from app.users.follows.models import FollowStatus
 from app.users.models import User
 
 

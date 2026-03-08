@@ -2,9 +2,9 @@ import uuid
 
 from sqlmodel import Session, col, func, select
 
-from app.follows import service as follows_service
+from app.collections.watched.models import WatchedMedia
+from app.users.follows import service as follows_service
 from app.users.models import User
-from app.watched.models import WatchedMedia
 
 
 def get_feed_watched_media(

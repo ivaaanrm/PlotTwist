@@ -7,7 +7,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.auth import service as auth_service
 from app.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
 from app.auth.schemas import Message, NewPassword, Token, UserPublic
-from app.auth.utils import generate_password_reset_token, generate_reset_password_email
+from app.auth.utils import generate_password_reset_token
+from app.notifications.email.utils import generate_reset_password_email
 from app.users import service as users_service
 
 router = APIRouter(tags=["login"])
