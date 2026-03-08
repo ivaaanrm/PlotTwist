@@ -113,4 +113,3 @@ def get_followed_user_ids(*, session: Session, user_id: uuid.UUID) -> list[uuid.
         Follow.status == FollowStatus.accepted,
     )
     return list(session.exec(stmt).all())
-

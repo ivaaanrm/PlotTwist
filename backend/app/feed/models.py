@@ -1,12 +1,12 @@
 from sqlmodel import SQLModel
 
-from app.collections.watched.schemas import WatchedMediaPublic
+from app.collections.schemas import CollectionItemPublic
 from app.users.schemas import UserPublic
 
 
 class FeedItem(SQLModel):
     user: UserPublic
-    watched_media: WatchedMediaPublic
+    collection_item: CollectionItemPublic
 
 
 class FeedPublic(SQLModel):

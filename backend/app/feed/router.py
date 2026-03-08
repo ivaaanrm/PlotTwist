@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser, SessionDep
 from app.feed import service as feed_service
-from app.feed.schemas import FeedItem, FeedPublic, UserPublic, WatchedMediaPublic
+from app.feed.schemas import CollectionItemPublic, FeedItem, FeedPublic, UserPublic
 
 router = APIRouter(prefix="/feed", tags=["feed"])
 
@@ -26,8 +26,8 @@ def get_feed(
     feed_items = [
         FeedItem(
             user=UserPublic.model_validate(user),
-            watched_media=WatchedMediaPublic.model_validate(watched),
+            collection_item=CollectionItemPublic.model_validate(item),
         )
-        for user, watched in rows
+        for user, item in rows
     ]
     return FeedPublic(data=feed_items, count=count)

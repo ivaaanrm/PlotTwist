@@ -4,8 +4,7 @@ from datetime import datetime
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
-from app.collections.watched.schemas import WatchedMediaPublic
-from app.collections.watchlist.schemas import WatchlistItemPublic
+from app.collections.schemas import CollectionItemPublic
 
 
 class UserBase(SQLModel):
@@ -54,8 +53,8 @@ class UserProfile(SQLModel):
     user: UserPublic
     watched_count: int
     average_rating: float | None
-    watched_media: list[WatchedMediaPublic]
-    watchlist: list[WatchlistItemPublic]
+    watched_media: list[CollectionItemPublic]
+    watchlist: list[CollectionItemPublic]
 
 
 class Message(SQLModel):
@@ -72,6 +71,5 @@ __all__ = [
     "UsersPublic",
     "UserUpdate",
     "UserUpdateMe",
-    "WatchedMediaPublic",
-    "WatchlistItemPublic",
+    "CollectionItemPublic",
 ]

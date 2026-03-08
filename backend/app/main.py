@@ -6,8 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app import models  # noqa: F401
 from app.auth.router import router as auth_router
-from app.collections.watched.router import router as watched_router
-from app.collections.watchlist.router import router as watchlist_router
+from app.collections.router import router as collections_router
 from app.config import settings
 from app.exceptions import AppException
 from app.feed.router import router as feed_router
@@ -37,7 +36,7 @@ app = FastAPI(**app_kwargs)
 
 
 @app.exception_handler(AppException)
-async def app_exception_handler(request, exc: AppException):
+async def app_exception_handler(_request, exc: AppException):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
@@ -46,8 +45,7 @@ api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(system_router)
 api_router.include_router(media_router)
-api_router.include_router(watched_router)
-api_router.include_router(watchlist_router)
+api_router.include_router(collections_router)
 api_router.include_router(follows_router)
 api_router.include_router(feed_router)
 

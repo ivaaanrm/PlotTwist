@@ -120,30 +120,18 @@ export type UserProfile = {
   watchlist: WatchlistItemPublic[]
 }
 
-type BackendWatchlistItemPublic = {
+type BackendCollectionItemPublic = {
   id: string
   user_id: string
   media_id: string
-  added_at?: string | null
-  media?: MoviePublic | null
-}
-
-type BackendWatchlistItemsPublic = {
-  data: BackendWatchlistItemPublic[]
-  count: number
-}
-
-type BackendWatchedMoviePublic = {
-  id: string
-  user_id: string
-  media_id: string
+  collection_name: string
   rating?: number | null
-  watched_at?: string | null
+  created_at?: string | null
   media?: MoviePublic | null
 }
 
-type BackendWatchedMoviesPublic = {
-  data: BackendWatchedMoviePublic[]
+type BackendCollectionItemListPublic = {
+  data: BackendCollectionItemPublic[]
   count: number
 }
 
@@ -151,8 +139,8 @@ type BackendUserProfile = {
   user: UserPublic
   watched_count: number
   average_rating?: number | null
-  watched_media?: BackendWatchedMoviePublic[]
-  watchlist: BackendWatchlistItemPublic[]
+  watched_media?: BackendCollectionItemPublic[]
+  watchlist: BackendCollectionItemPublic[]
 }
 
 const DEFAULT_MEDIA_TYPE: MediaType = "movie"
@@ -167,22 +155,22 @@ function mapCancelablePromise<TIn, TOut>(
   })
 }
 
-function normalizeWatchlistItem(
-  item: BackendWatchlistItemPublic,
+function normalizeCollectionItemToWatchlist(
+  item: BackendCollectionItemPublic,
 ): WatchlistItemPublic {
   return {
     id: item.id,
     user_id: item.user_id,
     media_id: item.media_id,
     movie_id: item.media_id,
-    added_at: item.added_at ?? null,
+    added_at: item.created_at ?? null,
     media: item.media ?? null,
     movie: item.media ?? null,
   }
 }
 
-function normalizeWatchedItem(
-  item: BackendWatchedMoviePublic,
+function normalizeCollectionItemToWatched(
+  item: BackendCollectionItemPublic,
 ): WatchedMoviePublic {
   return {
     id: item.id,
@@ -190,39 +178,39 @@ function normalizeWatchedItem(
     media_id: item.media_id,
     movie_id: item.media_id,
     rating: item.rating ?? null,
-    watched_at: item.watched_at ?? null,
+    watched_at: item.created_at ?? null,
     media: item.media ?? null,
     movie: item.media ?? null,
   }
 }
 
 function normalizeWatchlistResponse(
-  response: BackendWatchlistItemsPublic,
+  response: BackendCollectionItemListPublic,
 ): WatchlistItemsPublic {
   return {
-    data: response.data.map(normalizeWatchlistItem),
+    data: response.data.map(normalizeCollectionItemToWatchlist),
     count: response.count,
   }
 }
 
 function normalizeWatchedResponse(
-  response: BackendWatchedMoviesPublic,
+  response: BackendCollectionItemListPublic,
 ): WatchedMoviesPublic {
   return {
-    data: response.data.map(normalizeWatchedItem),
+    data: response.data.map(normalizeCollectionItemToWatched),
     count: response.count,
   }
 }
 
 function normalizeUserProfile(profile: BackendUserProfile): UserProfile {
-  const watchedMovies = (profile.watched_media ?? []).map(normalizeWatchedItem)
+  const watchedMovies = (profile.watched_media ?? []).map(normalizeCollectionItemToWatched)
   return {
     user: profile.user,
     watched_count: profile.watched_count,
     average_rating: profile.average_rating ?? null,
     watched_movies: watchedMovies,
     watched_media: watchedMovies,
-    watchlist: profile.watchlist.map(normalizeWatchlistItem),
+    watchlist: profile.watchlist.map(normalizeCollectionItemToWatchlist),
   }
 }
 
@@ -265,7 +253,7 @@ export const MovieDomainService = {
   }): CancelablePromise<WatchedMoviesPublic> {
     const promise = __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/watched/",
+      url: "/api/v1/collections/watched",
       query: {
         skip: data?.skip ?? 0,
         limit: data?.limit ?? 100,
@@ -273,7 +261,7 @@ export const MovieDomainService = {
       errors: {
         422: "Validation Error",
       },
-    }) as CancelablePromise<BackendWatchedMoviesPublic>
+    }) as CancelablePromise<BackendCollectionItemListPublic>
     return mapCancelablePromise(promise, normalizeWatchedResponse)
   },
 
@@ -284,7 +272,7 @@ export const MovieDomainService = {
   }): CancelablePromise<WatchedMoviePublic> {
     const promise = __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/watched/",
+      url: "/api/v1/collections/watched",
       body: {
         tmdb_id: data.tmdb_id,
         media_type: data.media_type ?? DEFAULT_MEDIA_TYPE,
@@ -295,8 +283,8 @@ export const MovieDomainService = {
         400: "Bad Request",
         422: "Validation Error",
       },
-    }) as CancelablePromise<BackendWatchedMoviePublic>
-    return mapCancelablePromise(promise, normalizeWatchedItem)
+    }) as CancelablePromise<BackendCollectionItemPublic>
+    return mapCancelablePromise(promise, normalizeCollectionItemToWatched)
   },
 
   updateWatched(data: {
@@ -304,10 +292,10 @@ export const MovieDomainService = {
     rating?: number | null
   }): CancelablePromise<WatchedMoviePublic> {
     const promise = __request(OpenAPI, {
-      method: "PATCH",
-      url: "/api/v1/watched/{id}",
+      method: "PUT",
+      url: "/api/v1/collections/items/{item_id}",
       path: {
-        id: data.id,
+        item_id: data.id,
       },
       body: {
         rating: data.rating ?? null,
@@ -317,16 +305,16 @@ export const MovieDomainService = {
         404: "Not Found",
         422: "Validation Error",
       },
-    }) as CancelablePromise<BackendWatchedMoviePublic>
-    return mapCancelablePromise(promise, normalizeWatchedItem)
+    }) as CancelablePromise<BackendCollectionItemPublic>
+    return mapCancelablePromise(promise, normalizeCollectionItemToWatched)
   },
 
   removeWatched(data: { id: string }): CancelablePromise<Message> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/watched/{id}",
+      url: "/api/v1/collections/items/{item_id}",
       path: {
-        id: data.id,
+        item_id: data.id,
       },
       errors: {
         404: "Not Found",
@@ -341,7 +329,7 @@ export const MovieDomainService = {
   }): CancelablePromise<WatchlistItemsPublic> {
     const promise = __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/watchlist/",
+      url: "/api/v1/collections/watchlist",
       query: {
         skip: data?.skip ?? 0,
         limit: data?.limit ?? 100,
@@ -349,7 +337,7 @@ export const MovieDomainService = {
       errors: {
         422: "Validation Error",
       },
-    }) as CancelablePromise<BackendWatchlistItemsPublic>
+    }) as CancelablePromise<BackendCollectionItemListPublic>
     return mapCancelablePromise(promise, normalizeWatchlistResponse)
   },
 
@@ -359,7 +347,7 @@ export const MovieDomainService = {
   }): CancelablePromise<WatchlistItemPublic> {
     const promise = __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/watchlist/",
+      url: "/api/v1/collections/watchlist",
       body: {
         tmdb_id: data.tmdb_id,
         media_type: data.media_type ?? DEFAULT_MEDIA_TYPE,
@@ -369,16 +357,16 @@ export const MovieDomainService = {
         400: "Bad Request",
         422: "Validation Error",
       },
-    }) as CancelablePromise<BackendWatchlistItemPublic>
-    return mapCancelablePromise(promise, normalizeWatchlistItem)
+    }) as CancelablePromise<BackendCollectionItemPublic>
+    return mapCancelablePromise(promise, normalizeCollectionItemToWatchlist)
   },
 
   removeFromWatchlist(data: { id: string }): CancelablePromise<Message> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/watchlist/{id}",
+      url: "/api/v1/collections/items/{item_id}",
       path: {
-        id: data.id,
+        item_id: data.id,
       },
       errors: {
         404: "Not Found",

@@ -7,8 +7,7 @@ from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.collections.watched.models import WatchedMedia
-    from app.collections.watchlist.models import WatchlistItem
+    from app.collections.models import CollectionItem
 
 
 def get_datetime_utc() -> datetime:
@@ -26,9 +25,6 @@ class User(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    watched_media: list["WatchedMedia"] = Relationship(
-        back_populates="user", cascade_delete=True
-    )
-    watchlist_items: list["WatchlistItem"] = Relationship(
+    collection_items: list["CollectionItem"] = Relationship(
         back_populates="user", cascade_delete=True
     )

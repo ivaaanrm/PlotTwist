@@ -1,2 +1,0 @@
-"""Watched subdomain under collections."""
-

@@ -2,7 +2,7 @@ import uuid
 
 from sqlmodel import Session, col, func, select
 
-from app.collections.watched.models import WatchedMedia
+from app.collections.models import CollectionItem
 from app.users.follows import service as follows_service
 from app.users.models import User
 
@@ -13,7 +13,7 @@ def get_feed_watched_media(
     user_id: uuid.UUID,
     skip: int = 0,
     limit: int = 50,
-) -> tuple[list[tuple[User, WatchedMedia]], int]:
+) -> tuple[list[tuple[User, CollectionItem]], int]:
     followed_ids = follows_service.get_followed_user_ids(
         session=session, user_id=user_id
     )
@@ -22,23 +22,29 @@ def get_feed_watched_media(
 
     count_stmt = (
         select(func.count())
-        .select_from(WatchedMedia)
-        .where(col(WatchedMedia.user_id).in_(followed_ids))
+        .select_from(CollectionItem)
+        .where(
+            col(CollectionItem.user_id).in_(followed_ids),
+            CollectionItem.collection_name == "watched",
+        )
     )
     count = session.exec(count_stmt).one()
 
     stmt = (
-        select(WatchedMedia)
-        .where(col(WatchedMedia.user_id).in_(followed_ids))
-        .order_by(col(WatchedMedia.watched_at).desc())
+        select(CollectionItem)
+        .where(
+            col(CollectionItem.user_id).in_(followed_ids),
+            CollectionItem.collection_name == "watched",
+        )
+        .order_by(col(CollectionItem.created_at).desc())
         .offset(skip)
         .limit(limit)
     )
-    watched_items = session.exec(stmt).all()
+    collection_items = session.exec(stmt).all()
 
-    result: list[tuple[User, WatchedMedia]] = []
-    for watched in watched_items:
-        user = session.get(User, watched.user_id)
+    result: list[tuple[User, CollectionItem]] = []
+    for item in collection_items:
+        user = session.get(User, item.user_id)
         if user:
-            result.append((user, watched))
+            result.append((user, item))
     return result, count

@@ -4,8 +4,8 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 from app.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
-from app.collections.watched import service as watched_service
-from app.collections.watchlist import service as watchlist_service
+from app.collections import service as collections_service
+from app.collections.adapters import SqlCollectionAdapter
 from app.core.security import get_password_hash, verify_password
 from app.notifications.email.config import email_settings
 from app.notifications.email.service import send_email
@@ -21,6 +21,7 @@ from app.users.exceptions import (
     UserNotFoundError,
 )
 from app.users.schemas import (
+    CollectionItemPublic,
     Message,
     UpdatePassword,
     UserCreate,
@@ -30,8 +31,6 @@ from app.users.schemas import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
-    WatchedMediaPublic,
-    WatchlistItemPublic,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -216,15 +215,18 @@ def get_user_profile(
     profile_user: users_dependencies.VisibleProfileUserDep,
     session: SessionDep,
 ) -> Any:
-    watched_items, watched_count = watched_service.get_watched_media(
-        session=session,
+    adapter = SqlCollectionAdapter(session)
+    watched_items, watched_count = collections_service.get_collection_items(
+        adapter=adapter,
         user_id=profile_user.id,
+        collection_name="watched",
         skip=0,
         limit=100,
     )
-    watchlist_items, _ = watchlist_service.get_watchlist_items(
-        session=session,
+    watchlist_items, _ = collections_service.get_collection_items(
+        adapter=adapter,
         user_id=profile_user.id,
+        collection_name="watchlist",
         skip=0,
         limit=100,
     )
@@ -237,9 +239,9 @@ def get_user_profile(
         watched_count=watched_count,
         average_rating=avg_rating,
         watched_media=[
-            WatchedMediaPublic.model_validate(item) for item in watched_items
+            CollectionItemPublic.model_validate(item) for item in watched_items
         ],
         watchlist=[
-            WatchlistItemPublic.model_validate(item) for item in watchlist_items
+            CollectionItemPublic.model_validate(item) for item in watchlist_items
         ],
     )

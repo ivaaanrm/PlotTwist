@@ -6,9 +6,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, delete
 
 from app.database import engine, init_db
-from app.notifications.email.config import email_settings
 from app.main import app
-from app.models import Follow, Media, User, WatchedMedia, WatchlistItem
+from app.models import CollectionItem, Follow, Media, User
+from app.notifications.email.config import email_settings
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -18,7 +18,7 @@ def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        for model in (Follow, WatchedMedia, WatchlistItem, Media, User):
+        for model in (Follow, CollectionItem, Media, User):
             try:
                 session.exec(delete(model))
             except SQLAlchemyError:

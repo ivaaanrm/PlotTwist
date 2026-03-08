@@ -1,2 +1,0 @@
-"""Watchlist subdomain under collections."""
-

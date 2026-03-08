@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Session, create_engine, select
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from app import models  # noqa: F401
 from app.config import settings
