@@ -34,8 +34,8 @@ function Home() {
         </div>
         <h3 className="text-lg font-semibold mb-1">Your feed is empty</h3>
         <p className="text-muted-foreground text-sm max-w-md">
-          Follow other users to see their recent watches and reviews here.
-          Start by discovering films and logging what you've watched.
+          Follow other users to see their recent watches and reviews here. Start
+          by discovering films and logging what you've watched.
         </p>
       </div>
     </div>

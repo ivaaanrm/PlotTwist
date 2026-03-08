@@ -1,14 +1,16 @@
-import type { CancelablePromise } from "@/client"
-import { OpenAPI } from "@/client"
+import { CancelablePromise, OpenAPI } from "@/client"
 import { request as __request } from "@/client/core/request"
 
 export type Message = {
   message: string
 }
 
+export type MediaType = "movie" | "series"
+
 export type MoviePublic = {
   id: string
   tmdb_id: number
+  media_type?: MediaType
   title: string
   overview?: string | null
   poster_path?: string | null
@@ -21,6 +23,7 @@ export type MoviePublic = {
 
 export type MovieSearchResult = {
   external_id: number
+  media_type: MediaType
   title: string
   overview?: string | null
   poster_path?: string | null
@@ -41,8 +44,10 @@ export type WatchlistItemPublic = {
   id: string
   user_id: string
   movie_id: string
+  media_id: string
   added_at?: string | null
   movie?: MoviePublic | null
+  media?: MoviePublic | null
 }
 
 export type WatchlistItemsPublic = {
@@ -54,9 +59,11 @@ export type WatchedMoviePublic = {
   id: string
   user_id: string
   movie_id: string
+  media_id: string
   rating?: number | null
   watched_at?: string | null
   movie?: MoviePublic | null
+  media?: MoviePublic | null
 }
 
 export type WatchedMoviesPublic = {
@@ -89,12 +96,134 @@ export type FollowsPublic = {
   count: number
 }
 
+export type FollowRequestPublic = {
+  follow: FollowPublic
+  requester: UserPublic
+}
+
+export type FollowRequestsPublic = {
+  data: FollowRequestPublic[]
+  count: number
+}
+
+export type UsersPublic = {
+  data: UserPublic[]
+  count: number
+}
+
 export type UserProfile = {
   user: UserPublic
   watched_count: number
   average_rating?: number | null
   watched_movies: WatchedMoviePublic[]
+  watched_media?: WatchedMoviePublic[]
   watchlist: WatchlistItemPublic[]
+}
+
+type BackendWatchlistItemPublic = {
+  id: string
+  user_id: string
+  media_id: string
+  added_at?: string | null
+  media?: MoviePublic | null
+}
+
+type BackendWatchlistItemsPublic = {
+  data: BackendWatchlistItemPublic[]
+  count: number
+}
+
+type BackendWatchedMoviePublic = {
+  id: string
+  user_id: string
+  media_id: string
+  rating?: number | null
+  watched_at?: string | null
+  media?: MoviePublic | null
+}
+
+type BackendWatchedMoviesPublic = {
+  data: BackendWatchedMoviePublic[]
+  count: number
+}
+
+type BackendUserProfile = {
+  user: UserPublic
+  watched_count: number
+  average_rating?: number | null
+  watched_media?: BackendWatchedMoviePublic[]
+  watchlist: BackendWatchlistItemPublic[]
+}
+
+const DEFAULT_MEDIA_TYPE: MediaType = "movie"
+
+function mapCancelablePromise<TIn, TOut>(
+  promise: CancelablePromise<TIn>,
+  mapper: (value: TIn) => TOut,
+): CancelablePromise<TOut> {
+  return new CancelablePromise<TOut>((resolve, reject, onCancel) => {
+    onCancel(() => promise.cancel())
+    promise.then((value) => resolve(mapper(value))).catch(reject)
+  })
+}
+
+function normalizeWatchlistItem(
+  item: BackendWatchlistItemPublic,
+): WatchlistItemPublic {
+  return {
+    id: item.id,
+    user_id: item.user_id,
+    media_id: item.media_id,
+    movie_id: item.media_id,
+    added_at: item.added_at ?? null,
+    media: item.media ?? null,
+    movie: item.media ?? null,
+  }
+}
+
+function normalizeWatchedItem(
+  item: BackendWatchedMoviePublic,
+): WatchedMoviePublic {
+  return {
+    id: item.id,
+    user_id: item.user_id,
+    media_id: item.media_id,
+    movie_id: item.media_id,
+    rating: item.rating ?? null,
+    watched_at: item.watched_at ?? null,
+    media: item.media ?? null,
+    movie: item.media ?? null,
+  }
+}
+
+function normalizeWatchlistResponse(
+  response: BackendWatchlistItemsPublic,
+): WatchlistItemsPublic {
+  return {
+    data: response.data.map(normalizeWatchlistItem),
+    count: response.count,
+  }
+}
+
+function normalizeWatchedResponse(
+  response: BackendWatchedMoviesPublic,
+): WatchedMoviesPublic {
+  return {
+    data: response.data.map(normalizeWatchedItem),
+    count: response.count,
+  }
+}
+
+function normalizeUserProfile(profile: BackendUserProfile): UserProfile {
+  const watchedMovies = (profile.watched_media ?? []).map(normalizeWatchedItem)
+  return {
+    user: profile.user,
+    watched_count: profile.watched_count,
+    average_rating: profile.average_rating ?? null,
+    watched_movies: watchedMovies,
+    watched_media: watchedMovies,
+    watchlist: profile.watchlist.map(normalizeWatchlistItem),
+  }
 }
 
 export const MovieDomainService = {
@@ -134,7 +263,7 @@ export const MovieDomainService = {
     skip?: number
     limit?: number
   }): CancelablePromise<WatchedMoviesPublic> {
-    return __request(OpenAPI, {
+    const promise = __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/watched/",
       query: {
@@ -144,30 +273,37 @@ export const MovieDomainService = {
       errors: {
         422: "Validation Error",
       },
-    })
+    }) as CancelablePromise<BackendWatchedMoviesPublic>
+    return mapCancelablePromise(promise, normalizeWatchedResponse)
   },
 
   markAsWatched(data: {
     tmdb_id: number
+    media_type?: MediaType
     rating?: number | null
   }): CancelablePromise<WatchedMoviePublic> {
-    return __request(OpenAPI, {
+    const promise = __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/watched/",
-      body: data,
+      body: {
+        tmdb_id: data.tmdb_id,
+        media_type: data.media_type ?? DEFAULT_MEDIA_TYPE,
+        rating: data.rating ?? null,
+      },
       mediaType: "application/json",
       errors: {
         400: "Bad Request",
         422: "Validation Error",
       },
-    })
+    }) as CancelablePromise<BackendWatchedMoviePublic>
+    return mapCancelablePromise(promise, normalizeWatchedItem)
   },
 
   updateWatched(data: {
     id: string
     rating?: number | null
   }): CancelablePromise<WatchedMoviePublic> {
-    return __request(OpenAPI, {
+    const promise = __request(OpenAPI, {
       method: "PATCH",
       url: "/api/v1/watched/{id}",
       path: {
@@ -181,7 +317,8 @@ export const MovieDomainService = {
         404: "Not Found",
         422: "Validation Error",
       },
-    })
+    }) as CancelablePromise<BackendWatchedMoviePublic>
+    return mapCancelablePromise(promise, normalizeWatchedItem)
   },
 
   removeWatched(data: { id: string }): CancelablePromise<Message> {
@@ -202,7 +339,7 @@ export const MovieDomainService = {
     skip?: number
     limit?: number
   }): CancelablePromise<WatchlistItemsPublic> {
-    return __request(OpenAPI, {
+    const promise = __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/watchlist/",
       query: {
@@ -212,22 +349,28 @@ export const MovieDomainService = {
       errors: {
         422: "Validation Error",
       },
-    })
+    }) as CancelablePromise<BackendWatchlistItemsPublic>
+    return mapCancelablePromise(promise, normalizeWatchlistResponse)
   },
 
   addToWatchlist(data: {
     tmdb_id: number
+    media_type?: MediaType
   }): CancelablePromise<WatchlistItemPublic> {
-    return __request(OpenAPI, {
+    const promise = __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/watchlist/",
-      body: data,
+      body: {
+        tmdb_id: data.tmdb_id,
+        media_type: data.media_type ?? DEFAULT_MEDIA_TYPE,
+      },
       mediaType: "application/json",
       errors: {
         400: "Bad Request",
         422: "Validation Error",
       },
-    })
+    }) as CancelablePromise<BackendWatchlistItemPublic>
+    return mapCancelablePromise(promise, normalizeWatchlistItem)
   },
 
   removeFromWatchlist(data: { id: string }): CancelablePromise<Message> {
@@ -261,6 +404,79 @@ export const MovieDomainService = {
     })
   },
 
+  listFollowRequests(data?: {
+    skip?: number
+    limit?: number
+  }): CancelablePromise<FollowRequestsPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/follows/requests",
+      query: {
+        skip: data?.skip ?? 0,
+        limit: data?.limit ?? 100,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  },
+
+  respondToFollowRequest(data: {
+    followId: string
+    status: FollowStatus
+  }): CancelablePromise<FollowPublic> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/follows/{follow_id}",
+      path: {
+        follow_id: data.followId,
+      },
+      body: {
+        status: data.status,
+      },
+      mediaType: "application/json",
+      errors: {
+        400: "Bad Request",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  sendFollowRequest(data: { userId: string }): CancelablePromise<FollowPublic> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/follows/{user_id}",
+      path: {
+        user_id: data.userId,
+      },
+      errors: {
+        400: "Bad Request",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  searchUsers(data?: {
+    query?: string
+    skip?: number
+    limit?: number
+  }): CancelablePromise<UsersPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/search",
+      query: {
+        query: data?.query ?? "",
+        skip: data?.skip ?? 0,
+        limit: data?.limit ?? 20,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  },
+
   listFollowing(data?: {
     skip?: number
     limit?: number
@@ -279,7 +495,7 @@ export const MovieDomainService = {
   },
 
   getUserProfile(data: { userId: string }): CancelablePromise<UserProfile> {
-    return __request(OpenAPI, {
+    const promise = __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/users/{user_id}/profile",
       path: {
@@ -290,6 +506,7 @@ export const MovieDomainService = {
         404: "Not Found",
         422: "Validation Error",
       },
-    })
+    }) as CancelablePromise<BackendUserProfile>
+    return mapCancelablePromise(promise, normalizeUserProfile)
   },
 }
