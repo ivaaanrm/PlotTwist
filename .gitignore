@@ -7,5 +7,14 @@ __pycache__/
 .env.local
 
 .env
-.claude
-.vscode
+.env.local
+.claude/
+.agents
+.vscode/
+
+CLAUDE.md
+AGENTS.md
+
+docs/
+
+skills-lock.json

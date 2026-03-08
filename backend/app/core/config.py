@@ -68,6 +68,9 @@ class Settings(BaseSettings):
             path=self.POSTGRES_DB,
         )
 
+    TMDB_API_KEY: str = ""
+    TMDB_BASE_URL: str = "https://api.themoviedb.org/3"
+
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     SMTP_PORT: int = 587

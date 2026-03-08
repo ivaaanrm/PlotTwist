@@ -1,8 +1,9 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from enum import Enum
 
-from pydantic import EmailStr
-from sqlalchemy import DateTime
+from pydantic import EmailStr, field_validator
+from sqlalchemy import DateTime, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -10,7 +11,9 @@ def get_datetime_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
-# Shared properties
+# ── User Models ──────────────────────────────────────────────────────────────
+
+
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
@@ -18,7 +21,6 @@ class UserBase(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
 
 
-# Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 
@@ -29,7 +31,6 @@ class UserRegister(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
 
 
-# Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
@@ -45,7 +46,6 @@ class UpdatePassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
-# Database model, database table inferred from class name
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
@@ -53,10 +53,14 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    watched_movies: list["WatchedMovie"] = Relationship(
+        back_populates="user", cascade_delete=True
+    )
+    watchlist_items: list["WatchlistItem"] = Relationship(
+        back_populates="user", cascade_delete=True
+    )
 
 
-# Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
@@ -67,59 +71,224 @@ class UsersPublic(SQLModel):
     count: int
 
 
-# Shared properties
-class ItemBase(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+# ── Movie Models ─────────────────────────────────────────────────────────────
 
 
-# Properties to receive on item creation
-class ItemCreate(ItemBase):
-    pass
+class MovieBase(SQLModel):
+    tmdb_id: int = Field(unique=True, index=True)
+    title: str = Field(max_length=255)
+    overview: str | None = Field(default=None, max_length=2000)
+    poster_path: str | None = Field(default=None, max_length=255)
+    backdrop_path: str | None = Field(default=None, max_length=255)
+    release_date: date | None = None
+    tmdb_rating: float | None = None
+    genres: str | None = Field(default=None, max_length=500)
 
 
-# Properties to receive on item update
-class ItemUpdate(ItemBase):
-    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
-
-
-# Database model, database table inferred from class name
-class Item(ItemBase, table=True):
+class Movie(MovieBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    updated_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
     )
-    owner: User | None = Relationship(back_populates="items")
 
 
-# Properties to return via API, id is always required
-class ItemPublic(ItemBase):
+class MoviePublic(MovieBase):
     id: uuid.UUID
-    owner_id: uuid.UUID
     created_at: datetime | None = None
 
 
-class ItemsPublic(SQLModel):
-    data: list[ItemPublic]
+class MoviesPublic(SQLModel):
+    data: list[MoviePublic]
     count: int
 
 
-# Generic message
+# ── WatchedMovie Models ─────────────────────────────────────────────────────
+
+
+class WatchedMovieBase(SQLModel):
+    rating: float | None = Field(default=None, ge=0.5, le=5.0)
+
+    @field_validator("rating")
+    @classmethod
+    def rating_must_be_half_step(cls, v: float | None) -> float | None:
+        if v is not None and (v * 2) % 1 != 0:
+            raise ValueError("Rating must be in 0.5 increments (0.5, 1.0, 1.5, ..., 5.0)")
+        return v
+
+
+class WatchedMovieCreate(SQLModel):
+    tmdb_id: int
+    rating: float | None = Field(default=None, ge=0.5, le=5.0)
+
+    @field_validator("rating")
+    @classmethod
+    def rating_must_be_half_step(cls, v: float | None) -> float | None:
+        if v is not None and (v * 2) % 1 != 0:
+            raise ValueError("Rating must be in 0.5 increments (0.5, 1.0, 1.5, ..., 5.0)")
+        return v
+
+
+class WatchedMovieUpdate(SQLModel):
+    rating: float | None = Field(default=None, ge=0.5, le=5.0)
+
+    @field_validator("rating")
+    @classmethod
+    def rating_must_be_half_step(cls, v: float | None) -> float | None:
+        if v is not None and (v * 2) % 1 != 0:
+            raise ValueError("Rating must be in 0.5 increments (0.5, 1.0, 1.5, ..., 5.0)")
+        return v
+
+
+class WatchedMovie(WatchedMovieBase, table=True):
+    __table_args__ = (UniqueConstraint("user_id", "movie_id"),)
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    movie_id: uuid.UUID = Field(foreign_key="movie.id", nullable=False, ondelete="CASCADE")
+    watched_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    user: User | None = Relationship(back_populates="watched_movies")
+    movie: Movie | None = Relationship()
+
+
+class WatchedMoviePublic(WatchedMovieBase):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    movie_id: uuid.UUID
+    watched_at: datetime | None = None
+    movie: MoviePublic | None = None
+
+
+class WatchedMoviesPublic(SQLModel):
+    data: list[WatchedMoviePublic]
+    count: int
+
+
+# ── WatchlistItem Models ────────────────────────────────────────────────────
+
+
+class WatchlistItemCreate(SQLModel):
+    tmdb_id: int
+
+
+class WatchlistItem(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("user_id", "movie_id"),)
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    movie_id: uuid.UUID = Field(foreign_key="movie.id", nullable=False, ondelete="CASCADE")
+    added_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    user: User | None = Relationship(back_populates="watchlist_items")
+    movie: Movie | None = Relationship()
+
+
+class WatchlistItemPublic(SQLModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    movie_id: uuid.UUID
+    added_at: datetime | None = None
+    movie: MoviePublic | None = None
+
+
+class WatchlistItemsPublic(SQLModel):
+    data: list[WatchlistItemPublic]
+    count: int
+
+
+# ── Follow Models ────────────────────────────────────────────────────────────
+
+
+class FollowStatus(str, Enum):
+    pending = "pending"
+    accepted = "accepted"
+    declined = "declined"
+
+
+class Follow(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("follower_id", "following_id"),)
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    follower_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    following_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    status: FollowStatus = Field(default=FollowStatus.pending)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    updated_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class FollowUpdate(SQLModel):
+    status: FollowStatus
+
+
+class FollowPublic(SQLModel):
+    id: uuid.UUID
+    follower_id: uuid.UUID
+    following_id: uuid.UUID
+    status: FollowStatus
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class FollowsPublic(SQLModel):
+    data: list[FollowPublic]
+    count: int
+
+
+# ── User Profile Models ─────────────────────────────────────────────────────
+
+
+class UserProfile(SQLModel):
+    user: UserPublic
+    watched_count: int
+    average_rating: float | None
+    watched_movies: list[WatchedMoviePublic]
+    watchlist: list[WatchlistItemPublic]
+
+
+# ── Feed Models ──────────────────────────────────────────────────────────────
+
+
+class FeedItem(SQLModel):
+    user: UserPublic
+    watched_movie: WatchedMoviePublic
+
+
+class FeedPublic(SQLModel):
+    data: list[FeedItem]
+    count: int
+
+
+# ── Auth / Utility Models ───────────────────────────────────────────────────
+
+
 class Message(SQLModel):
     message: str
 
 
-# JSON payload containing access token
 class Token(SQLModel):
     access_token: str
     token_type: str = "bearer"
 
 
-# Contents of JWT token
 class TokenPayload(SQLModel):
     sub: str | None = None
 

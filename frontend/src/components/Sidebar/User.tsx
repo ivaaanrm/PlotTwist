@@ -1,5 +1,10 @@
 import { Link as RouterLink } from "@tanstack/react-router"
-import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
+import {
+  ChevronsUpDown,
+  LogOut,
+  Settings,
+  User as UserIcon,
+} from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -79,6 +84,12 @@ export function User({ user }: { user: any }) {
               <UserInfo fullName={user?.full_name} email={user?.email} />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <RouterLink to="/profile" onClick={handleMenuClick}>
+              <DropdownMenuItem>
+                <UserIcon />
+                View Profile
+              </DropdownMenuItem>
+            </RouterLink>
             <RouterLink to="/settings" onClick={handleMenuClick}>
               <DropdownMenuItem>
                 <Settings />

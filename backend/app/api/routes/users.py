@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete, func, select
+from sqlmodel import col, func, select
 
 from app import crud
 from app.api.deps import (
@@ -13,16 +13,19 @@ from app.api.deps import (
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import (
-    Item,
+    FollowStatus,
     Message,
     UpdatePassword,
     User,
     UserCreate,
+    UserProfile,
     UserPublic,
     UserRegister,
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+    WatchedMoviePublic,
+    WatchlistItemPublic,
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -224,8 +227,46 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
-    session.exec(statement)
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+
+@router.get("/{user_id}/profile", response_model=UserProfile)
+def get_user_profile(
+    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    """
+    Get a user's profile. Requires accepted follow or being the user themselves.
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Allow self-access and superuser access
+    if user_id != current_user.id and not current_user.is_superuser:
+        follow = crud.get_follow(
+            session=session, follower_id=current_user.id, following_id=user_id
+        )
+        if not follow or follow.status != FollowStatus.accepted:
+            raise HTTPException(
+                status_code=403, detail="You must follow this user to view their profile"
+            )
+
+    watched_items, watched_count = crud.get_watched_movies(
+        session=session, user_id=user_id, skip=0, limit=100
+    )
+    watchlist_items, _ = crud.get_watchlist_items(
+        session=session, user_id=user_id, skip=0, limit=100
+    )
+
+    ratings = [w.rating for w in watched_items if w.rating is not None]
+    avg_rating = sum(ratings) / len(ratings) if ratings else None
+
+    return UserProfile(
+        user=UserPublic.model_validate(user),
+        watched_count=watched_count,
+        average_rating=avg_rating,
+        watched_movies=[WatchedMoviePublic.model_validate(w) for w in watched_items],
+        watchlist=[WatchlistItemPublic.model_validate(w) for w in watchlist_items],
+    )

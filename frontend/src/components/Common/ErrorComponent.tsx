@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router"
+import { AlertTriangle } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 
 const ErrorComponent = () => {
@@ -7,17 +9,12 @@ const ErrorComponent = () => {
       className="flex min-h-screen items-center justify-center flex-col p-4"
       data-testid="error-component"
     >
-      <div className="flex items-center z-10">
-        <div className="flex flex-col ml-4 items-center justify-center p-4">
-          <span className="text-6xl md:text-8xl font-bold leading-none mb-4">
-            Error
-          </span>
-          <span className="text-2xl font-bold mb-2">Oops!</span>
-        </div>
+      <div className="rounded-full bg-destructive/10 p-5 mb-6">
+        <AlertTriangle className="size-10 text-destructive" />
       </div>
-
-      <p className="text-lg text-muted-foreground mb-4 text-center z-10">
-        Something went wrong. Please try again.
+      <span className="text-2xl font-bold mb-2">Something went wrong</span>
+      <p className="text-lg text-muted-foreground mb-6 text-center">
+        An unexpected error occurred. Please try again.
       </p>
       <Link to="/">
         <Button>Go Home</Button>
