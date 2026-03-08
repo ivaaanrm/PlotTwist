@@ -1,4 +1,4 @@
-from sqlmodel import Session, create_engine, select
+from sqlmodel import SQLModel, Session, create_engine, select
 
 from app import models  # noqa: F401
 from app.config import settings
@@ -10,6 +10,9 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 
 def init_db(session: Session) -> None:
+    # Ensure all SQLModel tables exist when running without Alembic migrations
+    SQLModel.metadata.create_all(bind=engine)
+
     user = session.exec(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
     ).first()

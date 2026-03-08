@@ -4,10 +4,10 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.users import service as users_service
 from app.core.config import settings
 from app.core.security import verify_password
 from app.models import User, UserCreate
+from app.users import service as users_service
 from tests.utils.user import create_random_user
 from tests.utils.utils import random_email, random_lower_string
 
@@ -493,7 +493,9 @@ def test_delete_user_not_found(
 def test_delete_user_current_super_user_error(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    super_user = users_service.get_user_by_email(session=db, email=settings.FIRST_SUPERUSER)
+    super_user = users_service.get_user_by_email(
+        session=db, email=settings.FIRST_SUPERUSER
+    )
     assert super_user
     user_id = super_user.id
 
