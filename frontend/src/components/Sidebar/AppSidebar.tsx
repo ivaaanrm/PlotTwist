@@ -1,4 +1,4 @@
-import { CircleUser, Home, Search, Users } from "lucide-react"
+import { CircleUser, Home, Search, UserRoundPlus, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -15,6 +15,7 @@ import { User } from "./User"
 const baseItems: Item[] = [
   { icon: Home, title: "Home", path: "/" },
   { icon: Search, title: "Discover", path: "/items" },
+  { icon: UserRoundPlus, title: "Social", path: "/social" },
   { icon: CircleUser, title: "Profile", path: "/profile" },
 ]
 

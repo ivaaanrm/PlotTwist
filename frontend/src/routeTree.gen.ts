@@ -15,6 +15,7 @@ import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutSocialRouteImport } from './routes/_layout/social'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
@@ -49,6 +50,11 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutSocialRoute = LayoutSocialRouteImport.update({
+  id: '/social',
+  path: '/social',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/items': typeof LayoutItemsRoute
   '/profile': typeof LayoutProfileRoute
   '/settings': typeof LayoutSettingsRoute
+  '/social': typeof LayoutSocialRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/items': typeof LayoutItemsRoute
   '/profile': typeof LayoutProfileRoute
   '/settings': typeof LayoutSettingsRoute
+  '/social': typeof LayoutSocialRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesById {
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/profile': typeof LayoutProfileRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/social': typeof LayoutSocialRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/profile'
     | '/settings'
+    | '/social'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/profile'
     | '/settings'
+    | '/social'
     | '/'
   id:
     | '__root__'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_layout/items'
     | '/_layout/profile'
     | '/_layout/settings'
+    | '/_layout/social'
     | '/_layout/'
   fileRoutesById: FileRoutesById
 }
@@ -194,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/social': {
+      id: '/_layout/social'
+      path: '/social'
+      fullPath: '/social'
+      preLoaderRoute: typeof LayoutSocialRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
@@ -230,6 +249,7 @@ interface LayoutRouteChildren {
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutProfileRoute: typeof LayoutProfileRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutSocialRoute: typeof LayoutSocialRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
@@ -238,6 +258,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutProfileRoute: LayoutProfileRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutSocialRoute: LayoutSocialRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }
 

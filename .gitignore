@@ -18,3 +18,5 @@ AGENTS.md
 docs/
 
 skills-lock.json
+
+.ruff_cache
