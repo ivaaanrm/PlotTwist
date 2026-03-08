@@ -1,15 +1,17 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.auth import service as auth_service
 from app.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
+from app.auth.exceptions import InactiveUserError, InvalidCredentialsError
 from app.auth.schemas import Message, NewPassword, Token, UserPublic
 from app.auth.utils import generate_password_reset_token
 from app.notifications.email.utils import generate_reset_password_email
 from app.users import service as users_service
+from app.users.exceptions import UserNotFoundError
 
 router = APIRouter(tags=["login"])
 
@@ -26,9 +28,9 @@ def login_access_token(
         password=form_data.password,
     )
     if not user:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise InvalidCredentialsError()
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise InactiveUserError()
 
     return Token(access_token=auth_service.build_access_token(str(user.id)))
 
@@ -65,10 +67,7 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
 def recover_password_html_content(email: str, session: SessionDep) -> Any:
     user = users_service.get_user_by_email(session=session, email=email)
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system.",
-        )
+        raise UserNotFoundError()
 
     password_reset_token = generate_password_reset_token(email=email)
     email_data = generate_reset_password_email(

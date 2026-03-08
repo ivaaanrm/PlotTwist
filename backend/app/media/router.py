@@ -1,10 +1,11 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser, SessionDep
 from app.media import service as media_service
 from app.media.dependencies import MediaProviderDep
+from app.media.exceptions import EmptyQueryError
 from app.media.schemas import MediaPublic, MediaSearchResponse, MediaType
 
 router = APIRouter(prefix="/movies", tags=["movies"])
@@ -20,7 +21,7 @@ async def search_movies(
 ) -> Any:
     """Search media via external provider."""
     if not query.strip():
-        raise HTTPException(status_code=400, detail="Query cannot be empty")
+        raise EmptyQueryError()
 
     return await provider.search(
         query=query,

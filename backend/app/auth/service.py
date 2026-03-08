@@ -1,16 +1,17 @@
 from datetime import timedelta
 
-from fastapi import HTTPException
 from sqlmodel import Session
 
+from app.auth.exceptions import InactiveUserError, InvalidTokenError
 from app.auth.utils import (
     generate_password_reset_token,
     verify_password_reset_token,
 )
-from app.notifications.email.service import send_email
-from app.notifications.email.utils import generate_reset_password_email
 from app.config import settings
 from app.core import security
+from app.notifications.email.config import email_settings
+from app.notifications.email.service import send_email
+from app.notifications.email.utils import generate_reset_password_email
 from app.users import service as users_service
 from app.users.schemas import UserUpdate
 
@@ -47,7 +48,7 @@ def send_password_recovery_email(*, session: Session, email: str) -> None:
     user = users_service.get_user_by_email(session=session, email=email)
     if not user:
         return
-    if not settings.emails_enabled:
+    if not email_settings.emails_enabled:
         return
 
     password_reset_token = generate_password_reset_token(email=email)
@@ -66,13 +67,13 @@ def send_password_recovery_email(*, session: Session, email: str) -> None:
 def reset_password(*, session: Session, token: str, new_password: str) -> None:
     email = verify_password_reset_token(token=token)
     if not email:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        raise InvalidTokenError()
 
     user = users_service.get_user_by_email(session=session, email=email)
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        raise InvalidTokenError()
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise InactiveUserError()
 
     users_service.update_user(
         session=session,

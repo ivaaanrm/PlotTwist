@@ -1,5 +1,6 @@
 import sentry_sdk
 from fastapi import APIRouter, FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 
@@ -8,9 +9,9 @@ from app.auth.router import router as auth_router
 from app.collections.watched.router import router as watched_router
 from app.collections.watchlist.router import router as watchlist_router
 from app.config import settings
+from app.exceptions import AppException
 from app.feed.router import router as feed_router
 from app.media.router import router as media_router
-from app.system.private_router import router as private_router
 from app.system.router import router as system_router
 from app.users.follows.router import router as follows_router
 from app.users.router import router as users_router
@@ -34,6 +35,12 @@ if settings.ENVIRONMENT in SHOW_DOCS_ENVIRONMENTS:
 
 app = FastAPI(**app_kwargs)
 
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request, exc: AppException):
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
@@ -43,9 +50,6 @@ api_router.include_router(watched_router)
 api_router.include_router(watchlist_router)
 api_router.include_router(follows_router)
 api_router.include_router(feed_router)
-
-if settings.ENVIRONMENT == "local":
-    api_router.include_router(private_router)
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

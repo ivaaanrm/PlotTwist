@@ -1,10 +1,11 @@
 import uuid
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 
 from app.auth.dependencies import CurrentUser, SessionDep
 from app.users import service as users_service
+from app.users.exceptions import ProfileNotVisibleError, UserNotFoundError
 from app.users.follows import service as follows_service
 from app.users.follows.models import FollowStatus
 from app.users.models import User
@@ -13,7 +14,7 @@ from app.users.models import User
 def get_user_or_404(user_id: uuid.UUID, session: SessionDep) -> User:
     user = users_service.get_user_by_id(session=session, user_id=user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise UserNotFoundError()
     return user
 
 
@@ -34,10 +35,7 @@ def get_visible_profile_user(
         following_id=user.id,
     )
     if not follow or follow.status != FollowStatus.accepted:
-        raise HTTPException(
-            status_code=403,
-            detail="You must follow this user to view their profile",
-        )
+        raise ProfileNotVisibleError()
     return user
 
 

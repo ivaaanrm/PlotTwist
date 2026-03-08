@@ -1,10 +1,11 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser, SessionDep
 from app.collections.watched import dependencies as watched_dependencies
 from app.collections.watched import service as watched_service
+from app.collections.watched.exceptions import AlreadyWatchedError
 from app.collections.watched.schemas import (
     Message,
     WatchedMediaCreate,
@@ -12,11 +13,9 @@ from app.collections.watched.schemas import (
     WatchedMediaPublic,
     WatchedMediaUpdate,
 )
+from app.collections.watchlist import service as watchlist_service
 from app.media import service as media_service
 from app.media.dependencies import MediaProviderDep
-from app.media.schemas import MediaType
-
-from app.collections.watchlist import service as watchlist_service
 
 
 router = APIRouter(prefix="/watched", tags=["watched"])
@@ -43,7 +42,7 @@ async def mark_as_watched(
         media_id=media.id,
     )
     if existing:
-        raise HTTPException(status_code=400, detail="Already marked as watched")
+        raise AlreadyWatchedError()
 
     watchlist_item = watchlist_service.get_watchlist_item_by_user_and_media(
         session=session,
@@ -101,4 +100,3 @@ def remove_watched(
     session.delete(watched)
     session.commit()
     return Message(message="Removed from watched list")
-

@@ -1,9 +1,13 @@
 import uuid
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 
 from app.auth.dependencies import CurrentUser, SessionDep
+from app.collections.watched.exceptions import (
+    WatchedItemNotFoundError,
+    WatchedPermissionError,
+)
 from app.collections.watched.models import WatchedMedia
 
 
@@ -14,11 +18,10 @@ def get_owned_watched_media(
 ) -> WatchedMedia:
     watched = session.get(WatchedMedia, id)
     if not watched:
-        raise HTTPException(status_code=404, detail="Watched item not found")
+        raise WatchedItemNotFoundError()
     if watched.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise WatchedPermissionError()
     return watched
 
 
 OwnedWatchedMediaDep = Annotated[WatchedMedia, Depends(get_owned_watched_media)]
-

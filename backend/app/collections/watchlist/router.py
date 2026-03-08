@@ -1,10 +1,14 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser, SessionDep
 from app.collections.watchlist import dependencies as watchlist_dependencies
 from app.collections.watchlist import service as watchlist_service
+from app.collections.watchlist.exceptions import (
+    AlreadyInWatchlistError,
+    AlreadyWatchedError,
+)
 from app.collections.watchlist.schemas import (
     Message,
     WatchlistItemCreate,
@@ -38,7 +42,7 @@ async def add_to_watchlist(
         media_id=media.id,
     )
     if existing:
-        raise HTTPException(status_code=400, detail="Already in watchlist")
+        raise AlreadyInWatchlistError()
 
     from app.collections.watched import service as watched_service
 
@@ -48,7 +52,7 @@ async def add_to_watchlist(
         media_id=media.id,
     )
     if already_watched:
-        raise HTTPException(status_code=400, detail="Already marked as watched")
+        raise AlreadyWatchedError()
 
     item = watchlist_service.create_watchlist_item(
         session=session,
@@ -83,4 +87,3 @@ def remove_from_watchlist(
     session.delete(item)
     session.commit()
     return Message(message="Removed from watchlist")
-

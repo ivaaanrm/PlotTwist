@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 
 from app.config import settings
 from app.core.security import verify_password
+from app.notifications.email.config import email_settings
 from app.models import User, UserCreate
 from app.users import service as users_service
 from tests.utils.user import create_random_user
@@ -31,7 +32,7 @@ def test_get_users_normal_user_me(
     assert current_user
     assert current_user["is_active"] is True
     assert current_user["is_superuser"] is False
-    assert current_user["email"] == settings.EMAIL_TEST_USER
+    assert current_user["email"] == email_settings.EMAIL_TEST_USER
 
 
 def test_create_user_new_email(
@@ -39,8 +40,8 @@ def test_create_user_new_email(
 ) -> None:
     with (
         patch("app.users.router.send_email", return_value=None),
-        patch("app.config.settings.SMTP_HOST", "smtp.example.com"),
-        patch("app.config.settings.SMTP_USER", "admin@example.com"),
+        patch("app.notifications.email.config.email_settings.SMTP_HOST", "smtp.example.com"),
+        patch("app.notifications.email.config.email_settings.SMTP_USER", "admin@example.com"),
     ):
         username = random_email()
         password = random_lower_string()

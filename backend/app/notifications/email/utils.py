@@ -1,4 +1,5 @@
 from app.config import settings
+from app.notifications.email.config import email_settings
 from app.notifications.email.schemas import EmailData
 from app.notifications.email.service import render_email_template
 
@@ -23,7 +24,7 @@ def generate_reset_password_email(email_to: str, email: str, token: str) -> Emai
             "project_name": settings.PROJECT_NAME,
             "username": email,
             "email": email_to,
-            "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
+            "valid_hours": email_settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
             "link": link,
         },
     )

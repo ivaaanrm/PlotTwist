@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, delete
 
-from app.config import settings
 from app.database import engine, init_db
+from app.notifications.email.config import email_settings
 from app.main import app
 from app.models import Follow, Media, User, WatchedMedia, WatchlistItem
 from tests.utils.user import authentication_token_from_email
@@ -41,5 +41,5 @@ def superuser_token_headers(client: TestClient) -> dict[str, str]:
 @pytest.fixture(scope="module")
 def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]:
     return authentication_token_from_email(
-        client=client, email=settings.EMAIL_TEST_USER, db=db
+        client=client, email=email_settings.EMAIL_TEST_USER, db=db
     )

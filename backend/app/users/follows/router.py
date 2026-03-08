@@ -1,12 +1,20 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser, SessionDep
 from app.users import service as users_service
+from app.users.exceptions import UserNotFoundError
 from app.users.follows import dependencies as follows_dependencies
 from app.users.follows import service as follows_service
+from app.users.follows.exceptions import (
+    AlreadyFollowingError,
+    CannotFollowSelfError,
+    FollowNotFoundError,
+    FollowRequestPendingError,
+    InvalidFollowStatusError,
+)
 from app.users.follows.models import get_datetime_utc
 from app.users.follows.schemas import (
     FollowPublic,
@@ -29,11 +37,11 @@ def send_follow_request(
     current_user: CurrentUser,
 ) -> Any:
     if user_id == current_user.id:
-        raise HTTPException(status_code=400, detail="Cannot follow yourself")
+        raise CannotFollowSelfError()
 
     target = users_service.get_user_by_id(session=session, user_id=user_id)
     if not target:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise UserNotFoundError()
 
     existing = follows_service.get_follow(
         session=session,
@@ -42,11 +50,9 @@ def send_follow_request(
     )
     if existing:
         if existing.status == FollowStatus.accepted:
-            raise HTTPException(status_code=400, detail="Already following this user")
+            raise AlreadyFollowingError()
         if existing.status == FollowStatus.pending:
-            raise HTTPException(
-                status_code=400, detail="Follow request already pending"
-            )
+            raise FollowRequestPendingError()
         if existing.status == FollowStatus.declined:
             existing.status = FollowStatus.pending
             existing.updated_at = get_datetime_utc()
@@ -99,10 +105,7 @@ def respond_to_follow_request(
     follow_in: FollowUpdate,
 ) -> Any:
     if follow_in.status not in (FollowStatus.accepted, FollowStatus.declined):
-        raise HTTPException(
-            status_code=400,
-            detail="Status must be 'accepted' or 'declined'",
-        )
+        raise InvalidFollowStatusError()
 
     follow.status = follow_in.status
     follow.updated_at = get_datetime_utc()
@@ -124,7 +127,7 @@ def unfollow_or_cancel(
         following_id=user_id,
     )
     if not follow:
-        raise HTTPException(status_code=404, detail="Follow relationship not found")
+        raise FollowNotFoundError()
 
     session.delete(follow)
     session.commit()
@@ -161,4 +164,3 @@ def list_following(
         limit=limit,
     )
     return FollowsPublic(data=items, count=count)
-

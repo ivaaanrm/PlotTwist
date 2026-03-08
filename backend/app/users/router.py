@@ -1,17 +1,25 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
-from app.notifications.email.service import send_email
-from app.notifications.email.utils import generate_new_account_email
 from app.collections.watched import service as watched_service
 from app.collections.watchlist import service as watchlist_service
-from app.config import settings
 from app.core.security import get_password_hash, verify_password
+from app.notifications.email.config import email_settings
+from app.notifications.email.service import send_email
+from app.notifications.email.utils import generate_new_account_email
 from app.users import dependencies as users_dependencies
 from app.users import service as users_service
+from app.users.exceptions import (
+    IncorrectPasswordError,
+    InsufficientPrivilegesError,
+    SamePasswordError,
+    SuperUserDeletionError,
+    UserEmailExistsError,
+    UserNotFoundError,
+)
 from app.users.schemas import (
     Message,
     UpdatePassword,
@@ -47,13 +55,10 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     existing = users_service.get_user_by_email(session=session, email=user_in.email)
     if existing:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system.",
-        )
+        raise UserEmailExistsError()
 
     user = users_service.create_user(session=session, user_create=user_in)
-    if settings.emails_enabled and user_in.email:
+    if email_settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email,
             username=user_in.email,
@@ -79,10 +84,7 @@ def update_user_me(
             session=session, email=user_in.email
         )
         if existing_user and existing_user.id != current_user.id:
-            raise HTTPException(
-                status_code=409,
-                detail="User with this email already exists",
-            )
+            raise UserEmailExistsError()
 
     current_user.sqlmodel_update(user_in.model_dump(exclude_unset=True))
     session.add(current_user)
@@ -100,12 +102,9 @@ def update_password_me(
 ) -> Any:
     verified, _ = verify_password(body.current_password, current_user.hashed_password)
     if not verified:
-        raise HTTPException(status_code=400, detail="Incorrect password")
+        raise IncorrectPasswordError()
     if body.current_password == body.new_password:
-        raise HTTPException(
-            status_code=400,
-            detail="New password cannot be the same as the current one",
-        )
+        raise SamePasswordError()
 
     current_user.hashed_password = get_password_hash(body.new_password)
     session.add(current_user)
@@ -121,10 +120,7 @@ def read_user_me(current_user: CurrentUser) -> Any:
 @router.delete("/me", response_model=Message)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     if current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="Super users are not allowed to delete themselves",
-        )
+        raise SuperUserDeletionError()
     users_service.delete_user(session=session, user=current_user)
     return Message(message="User deleted successfully")
 
@@ -133,10 +129,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     existing = users_service.get_user_by_email(session=session, email=user_in.email)
     if existing:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system",
-        )
+        raise UserEmailExistsError()
 
     user_create = UserCreate.model_validate(user_in)
     user = users_service.create_user(session=session, user_create=user_create)
@@ -171,12 +164,9 @@ def read_user_by_id(
     if user == current_user:
         return user
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
+        raise InsufficientPrivilegesError()
     if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise UserNotFoundError()
     return user
 
 
@@ -193,20 +183,14 @@ def update_user(
 ) -> Any:
     db_user = users_service.get_user_by_id(session=session, user_id=user_id)
     if not db_user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this id does not exist in the system",
-        )
+        raise UserNotFoundError()
 
     if user_in.email:
         existing_user = users_service.get_user_by_email(
             session=session, email=user_in.email
         )
         if existing_user and existing_user.id != user_id:
-            raise HTTPException(
-                status_code=409,
-                detail="User with this email already exists",
-            )
+            raise UserEmailExistsError()
 
     return users_service.update_user(session=session, db_user=db_user, user_in=user_in)
 
@@ -219,12 +203,9 @@ def delete_user(
 ) -> Message:
     user = users_service.get_user_by_id(session=session, user_id=user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise UserNotFoundError()
     if user == current_user:
-        raise HTTPException(
-            status_code=403,
-            detail="Super users are not allowed to delete themselves",
-        )
+        raise SuperUserDeletionError()
 
     users_service.delete_user(session=session, user=user)
     return Message(message="User deleted successfully")
