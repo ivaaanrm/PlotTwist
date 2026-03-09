@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Bell, Check, X } from "lucide-react"
+import { Bell, Check, Layers, X } from "lucide-react"
 import { useState } from "react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -11,7 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { MovieDomainService } from "@/features/movie-domain/api"
+import {
+    MovieDomainService,
+    type CollectionInvitationPublic,
+} from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { getInitials, handleError } from "@/utils"
@@ -64,6 +67,52 @@ function RequestCard({
     )
 }
 
+function InvitationCard({
+    invitation,
+    isResponding,
+    onRespond,
+}: {
+    invitation: CollectionInvitationPublic
+    isResponding: boolean
+    onRespond: (invitationId: string, status: "accepted" | "declined") => void
+}) {
+    return (
+        <article className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 transition-all duration-200">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5">
+                <Layers className="size-4 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate">
+                    {invitation.collection_name}
+                </p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                    Invited by {invitation.sender_full_name || "a collaborator"}
+                </p>
+            </div>
+
+            <div className="flex gap-1.5 shrink-0">
+                <LoadingButton
+                    size="sm"
+                    loading={isResponding}
+                    onClick={() => onRespond(invitation.id, "accepted")}
+                    className="rounded-full text-[11px] h-7 px-2.5"
+                >
+                    <Check className="size-3" />
+                </LoadingButton>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isResponding}
+                    onClick={() => onRespond(invitation.id, "declined")}
+                    className="rounded-full text-[11px] h-7 px-2.5"
+                >
+                    <X className="size-3" />
+                </Button>
+            </div>
+        </article>
+    )
+}
+
 function SearchSkeleton() {
     return (
         <div className="space-y-2">
@@ -90,10 +139,17 @@ export function NotificationsMenu() {
     const { showSuccessToast, showErrorToast } = useCustomToast()
 
     const [respondingFollowId, setRespondingFollowId] = useState<string | null>(null)
+    const [respondingInvitationId, setRespondingInvitationId] = useState<string | null>(null)
 
     const requestsQuery = useQuery({
         queryKey: ["social", "requests"],
         queryFn: () => MovieDomainService.listFollowRequests({ skip: 0, limit: 100 }),
+        enabled: Boolean(currentUser?.id),
+    })
+
+    const invitationsQuery = useQuery({
+        queryKey: ["collections", "invitations"],
+        queryFn: () => MovieDomainService.listReceivedInvitations(),
         enabled: Boolean(currentUser?.id),
     })
 
@@ -123,6 +179,30 @@ export function NotificationsMenu() {
         },
     })
 
+    const respondToInvitationMutation = useMutation({
+        mutationFn: (payload: {
+            invitationId: string
+            status: "accepted" | "declined"
+        }) =>
+            MovieDomainService.respondToCollectionInvitation({
+                invitationId: payload.invitationId,
+                status: payload.status,
+            }),
+        onSuccess: (_, payload) => {
+            showSuccessToast(
+                payload.status === "accepted"
+                    ? "Invitation accepted"
+                    : "Invitation declined",
+            )
+        },
+        onError: handleError.bind(showErrorToast),
+        onSettled: async () => {
+            setRespondingInvitationId(null)
+            await queryClient.invalidateQueries({ queryKey: ["collections", "invitations"] })
+            await queryClient.invalidateQueries({ queryKey: ["collections"] })
+        },
+    })
+
     if (!currentUser) {
         return null
     }
@@ -132,14 +212,21 @@ export function NotificationsMenu() {
         respondToRequestMutation.mutate({ followId, status })
     }
 
+    const handleInvitationRespond = (invitationId: string, status: "accepted" | "declined") => {
+        setRespondingInvitationId(invitationId)
+        respondToInvitationMutation.mutate({ invitationId, status })
+    }
+
     const requests = requestsQuery.data?.data ?? []
+    const invitations = invitationsQuery.data?.data ?? []
+    const totalCount = requests.length + invitations.length
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative rounded-full">
                     <Bell className="size-5 text-muted-foreground" />
-                    {requests.length > 0 && (
+                    {totalCount > 0 && (
                         <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-destructive" />
                     )}
                 </Button>
@@ -148,45 +235,58 @@ export function NotificationsMenu() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h4 className="font-semibold tracking-tight text-sm">Notifications</h4>
-                        {requests.length > 0 && (
+                        {totalCount > 0 && (
                             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                                {requestsQuery.data?.count ?? 0} new
+                                {totalCount} new
                             </span>
                         )}
                     </div>
 
                     <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                        {requestsQuery.isLoading ? (
+                        {requestsQuery.isLoading && invitationsQuery.isLoading ? (
                             <SearchSkeleton />
-                        ) : requestsQuery.isError ? (
+                        ) : requestsQuery.isError && invitationsQuery.isError ? (
                             <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
-                                {requestsQuery.error.message || "Could not load follow requests."}
+                                Could not load notifications.
                             </div>
-                        ) : requests.length === 0 ? (
+                        ) : totalCount === 0 ? (
                             <div className="rounded-xl border border-dashed bg-card/50 px-4 py-8 text-center">
                                 <p className="text-xs text-muted-foreground">
                                     You have no pending notifications.
                                 </p>
                             </div>
                         ) : (
-                            requests.map((request) => {
-                                const displayName =
-                                    request.requester.full_name || request.requester.email
-
-                                return (
-                                    <RequestCard
-                                        key={request.follow.id}
-                                        displayName={displayName}
-                                        email={request.requester.email}
-                                        followId={request.follow.id}
+                            <>
+                                {invitations.map((invitation) => (
+                                    <InvitationCard
+                                        key={invitation.id}
+                                        invitation={invitation}
                                         isResponding={
-                                            respondToRequestMutation.isPending &&
-                                            respondingFollowId === request.follow.id
+                                            respondToInvitationMutation.isPending &&
+                                            respondingInvitationId === invitation.id
                                         }
-                                        onRespond={handleRespond}
+                                        onRespond={handleInvitationRespond}
                                     />
-                                )
-                            })
+                                ))}
+                                {requests.map((request) => {
+                                    const displayName =
+                                        request.requester.full_name || request.requester.email
+
+                                    return (
+                                        <RequestCard
+                                            key={request.follow.id}
+                                            displayName={displayName}
+                                            email={request.requester.email}
+                                            followId={request.follow.id}
+                                            isResponding={
+                                                respondToRequestMutation.isPending &&
+                                                respondingFollowId === request.follow.id
+                                            }
+                                            onRespond={handleRespond}
+                                        />
+                                    )
+                                })}
+                            </>
                         )}
                     </div>
                 </div>

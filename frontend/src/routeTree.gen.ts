@@ -20,6 +20,8 @@ import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutDiscoverRouteImport } from './routes/_layout/discover'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutCollectionsIndexRouteImport } from './routes/_layout/collections/index'
+import { Route as LayoutCollectionsCollectionIdRouteImport } from './routes/_layout/collections/$collectionId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -75,6 +77,17 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutCollectionsIndexRoute = LayoutCollectionsIndexRouteImport.update({
+  id: '/collections/',
+  path: '/collections/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCollectionsCollectionIdRoute =
+  LayoutCollectionsCollectionIdRouteImport.update({
+    id: '/collections/$collectionId',
+    path: '/collections/$collectionId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
@@ -87,6 +100,8 @@ export interface FileRoutesByFullPath {
   '/profile': typeof LayoutProfileRoute
   '/settings': typeof LayoutSettingsRoute
   '/social': typeof LayoutSocialRoute
+  '/collections/$collectionId': typeof LayoutCollectionsCollectionIdRoute
+  '/collections/': typeof LayoutCollectionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -99,6 +114,8 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/social': typeof LayoutSocialRoute
   '/': typeof LayoutIndexRoute
+  '/collections/$collectionId': typeof LayoutCollectionsCollectionIdRoute
+  '/collections': typeof LayoutCollectionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +130,8 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/social': typeof LayoutSocialRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/collections/$collectionId': typeof LayoutCollectionsCollectionIdRoute
+  '/_layout/collections/': typeof LayoutCollectionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +146,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/social'
+    | '/collections/$collectionId'
+    | '/collections/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -139,6 +160,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/social'
     | '/'
+    | '/collections/$collectionId'
+    | '/collections'
   id:
     | '__root__'
     | '/_layout'
@@ -152,6 +175,8 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/_layout/social'
     | '/_layout/'
+    | '/_layout/collections/$collectionId'
+    | '/_layout/collections/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -241,6 +266,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/collections/': {
+      id: '/_layout/collections/'
+      path: '/collections'
+      fullPath: '/collections/'
+      preLoaderRoute: typeof LayoutCollectionsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/collections/$collectionId': {
+      id: '/_layout/collections/$collectionId'
+      path: '/collections/$collectionId'
+      fullPath: '/collections/$collectionId'
+      preLoaderRoute: typeof LayoutCollectionsCollectionIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -251,6 +290,8 @@ interface LayoutRouteChildren {
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutSocialRoute: typeof LayoutSocialRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutCollectionsCollectionIdRoute: typeof LayoutCollectionsCollectionIdRoute
+  LayoutCollectionsIndexRoute: typeof LayoutCollectionsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -260,6 +301,8 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutSocialRoute: LayoutSocialRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutCollectionsCollectionIdRoute: LayoutCollectionsCollectionIdRoute,
+  LayoutCollectionsIndexRoute: LayoutCollectionsIndexRoute,
 }
 
 const LayoutRouteWithChildren =

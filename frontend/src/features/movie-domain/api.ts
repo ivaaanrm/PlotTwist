@@ -245,6 +245,67 @@ export type FeedPublic = {
   count: number
 }
 
+// --- Named Collections ---
+
+export type CollectionMemberPublic = {
+  id: string
+  user_id: string
+  role: string
+  joined_at?: string | null
+  user_full_name?: string | null
+  user_email?: string | null
+}
+
+export type CollectionPublic = {
+  id: string
+  name: string
+  description?: string | null
+  owner_id: string
+  is_collaborative: boolean
+  created_at?: string | null
+  updated_at?: string | null
+  item_count: number
+  members: CollectionMemberPublic[]
+  cover_posters: (string | null)[]
+}
+
+export type CollectionListPublic = {
+  data: CollectionPublic[]
+  count: number
+}
+
+export type CollectionItemPublicNamed = {
+  id: string
+  user_id: string
+  media_id: string
+  collection_name?: string | null
+  collection_id?: string | null
+  rating?: number | null
+  position: number
+  created_at?: string | null
+  media?: MoviePublic | null
+}
+
+export type CollectionDetailPublic = CollectionPublic & {
+  items: CollectionItemPublicNamed[]
+}
+
+export type CollectionInvitationPublic = {
+  id: string
+  collection_id: string
+  sender_id: string
+  receiver_id: string
+  status: string
+  created_at?: string | null
+  collection_name?: string | null
+  sender_full_name?: string | null
+}
+
+export type CollectionInvitationListPublic = {
+  data: CollectionInvitationPublic[]
+  count: number
+}
+
 export const MovieDomainService = {
   getFeed(data?: {
     skip?: number
@@ -581,5 +642,217 @@ export const MovieDomainService = {
       },
     }) as CancelablePromise<BackendUserProfile>
     return mapCancelablePromise(promise, normalizeUserProfile)
+  },
+
+  // --- Named Collections ---
+
+  listNamedCollections(data?: {
+    skip?: number
+    limit?: number
+  }): CancelablePromise<CollectionListPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/collections/named",
+      query: {
+        skip: data?.skip ?? 0,
+        limit: data?.limit ?? 50,
+      },
+      errors: { 422: "Validation Error" },
+    })
+  },
+
+  createNamedCollection(data: {
+    name: string
+    description?: string | null
+    is_collaborative?: boolean
+  }): CancelablePromise<CollectionPublic> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/collections/named",
+      body: {
+        name: data.name,
+        description: data.description ?? null,
+        is_collaborative: data.is_collaborative ?? false,
+      },
+      mediaType: "application/json",
+      errors: { 422: "Validation Error" },
+    })
+  },
+
+  getNamedCollection(data: {
+    collectionId: string
+  }): CancelablePromise<CollectionDetailPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/collections/named/{collection_id}",
+      path: { collection_id: data.collectionId },
+      errors: {
+        403: "Forbidden",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  updateNamedCollection(data: {
+    collectionId: string
+    name?: string
+    description?: string | null
+    is_collaborative?: boolean
+  }): CancelablePromise<CollectionPublic> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/collections/named/{collection_id}",
+      path: { collection_id: data.collectionId },
+      body: {
+        name: data.name,
+        description: data.description,
+        is_collaborative: data.is_collaborative,
+      },
+      mediaType: "application/json",
+      errors: {
+        403: "Forbidden",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  deleteNamedCollection(data: {
+    collectionId: string
+  }): CancelablePromise<Message> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/collections/named/{collection_id}",
+      path: { collection_id: data.collectionId },
+      errors: {
+        403: "Forbidden",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  addToNamedCollection(data: {
+    collectionId: string
+    tmdb_id: number
+    media_type?: MediaType
+    rating?: number | null
+  }): CancelablePromise<CollectionItemPublicNamed> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/collections/named/{collection_id}/items",
+      path: { collection_id: data.collectionId },
+      body: {
+        tmdb_id: data.tmdb_id,
+        media_type: data.media_type ?? DEFAULT_MEDIA_TYPE,
+        rating: data.rating ?? null,
+      },
+      mediaType: "application/json",
+      errors: {
+        400: "Bad Request",
+        403: "Forbidden",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  removeFromNamedCollection(data: {
+    collectionId: string
+    itemId: string
+  }): CancelablePromise<Message> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/collections/named/{collection_id}/items/{item_id}",
+      path: {
+        collection_id: data.collectionId,
+        item_id: data.itemId,
+      },
+      errors: {
+        403: "Forbidden",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  reorderNamedCollection(data: {
+    collectionId: string
+    item_ids: string[]
+  }): CancelablePromise<Message> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/collections/named/{collection_id}/items/reorder",
+      path: { collection_id: data.collectionId },
+      body: { item_ids: data.item_ids },
+      mediaType: "application/json",
+      errors: {
+        403: "Forbidden",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  inviteToCollection(data: {
+    collectionId: string
+    receiver_id: string
+  }): CancelablePromise<CollectionInvitationPublic> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/collections/named/{collection_id}/invitations",
+      path: { collection_id: data.collectionId },
+      body: { receiver_id: data.receiver_id },
+      mediaType: "application/json",
+      errors: {
+        400: "Bad Request",
+        403: "Forbidden",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  listReceivedInvitations(): CancelablePromise<CollectionInvitationListPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/collections/invitations/received",
+      errors: { 422: "Validation Error" },
+    })
+  },
+
+  respondToCollectionInvitation(data: {
+    invitationId: string
+    status: "accepted" | "declined"
+  }): CancelablePromise<CollectionInvitationPublic> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/collections/invitations/{invitation_id}",
+      path: { invitation_id: data.invitationId },
+      body: { status: data.status },
+      mediaType: "application/json",
+      errors: {
+        400: "Bad Request",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  removeCollectionMember(data: {
+    collectionId: string
+    userId: string
+  }): CancelablePromise<Message> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/collections/named/{collection_id}/members/{user_id}",
+      path: {
+        collection_id: data.collectionId,
+        user_id: data.userId,
+      },
+      errors: {
+        403: "Forbidden",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
   },
 }

@@ -6,8 +6,6 @@ __pycache__/
 .venv/
 .env.local
 
-.env.*
-
 .env
 .env.prod
 .env.local
@@ -23,3 +21,5 @@ docs/
 skills-lock.json
 
 .ruff_cache
+.obsidian
+.pytest_cache
