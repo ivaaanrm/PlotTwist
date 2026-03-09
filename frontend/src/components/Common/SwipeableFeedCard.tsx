@@ -72,13 +72,12 @@ export function SwipeableFeedCard({
         <div ref={containerRef} className="relative overflow-hidden rounded-2xl">
             {/* Background action strip */}
             <div
-                className={`absolute inset-0 flex items-center justify-end px-6 transition-colors duration-150 ${
-                    isInWatchlist
+                className={`ticket-card absolute inset-0 flex items-center justify-end px-6 transition-colors duration-150 ${isInWatchlist
                         ? "bg-zinc-600"
                         : isPastThreshold
-                          ? "bg-amber-500"
-                          : "bg-amber-500/50"
-                }`}
+                            ? "bg-amber-500"
+                            : "bg-amber-500/50"
+                    }`}
             >
                 <div className="flex items-center gap-2 text-white font-medium text-sm">
                     {isInWatchlist ? (

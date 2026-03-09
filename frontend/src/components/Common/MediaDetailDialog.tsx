@@ -182,7 +182,7 @@ export function MediaDetailDialog({
                                                 className="rounded-full text-[11px] h-7 px-3 gap-1.5 border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
                                             >
                                                 <FolderPlus className="size-3.5" />
-                                                Collection
+                                                Add to collection
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="start">
@@ -211,11 +211,10 @@ export function MediaDetailDialog({
                                     onClick={() =>
                                         addToWatchlistMutation.mutate(tmdbId)
                                     }
-                                    className={`rounded-full text-[11px] h-7 px-3 gap-1.5 ${
-                                        isInWatchlist
-                                            ? "border-emerald-500/30 text-emerald-400"
-                                            : "border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
-                                    }`}
+                                    className={`rounded-full text-[11px] h-7 px-3 gap-1.5 ${isInWatchlist
+                                        ? "border-emerald-500/30 text-emerald-400"
+                                        : "border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+                                        }`}
                                 >
                                     {isInWatchlist ? (
                                         <>
@@ -225,7 +224,7 @@ export function MediaDetailDialog({
                                     ) : (
                                         <>
                                             <Clock className="size-3.5" />
-                                            Watchlist
+                                            Add to watchlist
                                         </>
                                     )}
                                 </LoadingButton>

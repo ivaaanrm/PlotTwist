@@ -55,15 +55,12 @@ function FeedCard({
           onClick()
         }
       }}
-      className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] drop-shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_6px_16px_rgba(0,0,0,0.12)] dark:hover:drop-shadow-[0_6px_16px_rgba(0,0,0,0.6)]"
+      className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]"
       id={`feed-item-${ci.id}`}
     >
       {/* Main card */}
       <article
-        className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px]"
-        style={{
-          boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.06)',
-        }}
+        className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40"
       >
         {/* Poster */}
         <div className="w-[68px] shrink-0 p-1.5 pl-3 relative z-10">
@@ -143,8 +140,7 @@ function FeedSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="ticket-card flex bg-card dark:bg-[#25252d] overflow-hidden h-[100px]"
-          style={{ boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.06)' }}
+          className="ticket-card flex bg-card dark:bg-[#25252d] overflow-hidden h-[100px] ring-1 ring-inset ring-black/5 dark:ring-white/5"
         >
           <div className="w-[68px] shrink-0 p-1.5 pl-3">
             <Skeleton className="h-full rounded-md bg-muted" />

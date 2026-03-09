@@ -74,9 +74,9 @@ export function SwipeableDeleteCard({
         <div ref={containerRef} className="relative overflow-hidden rounded-2xl">
             {/* Background action strip */}
             <div
-                className={`absolute inset-0 flex items-center justify-end px-6 transition-colors duration-150 ${isPastThreshold
-                        ? "bg-destructive"
-                        : "bg-destructive/80"
+                className={`ticket-card absolute inset-0 flex items-center justify-end px-6 transition-colors duration-150 ${isPastThreshold
+                    ? "bg-destructive"
+                    : "bg-destructive/80"
                     }`}
             >
                 <div className="flex items-center gap-2 text-white font-medium text-sm">
