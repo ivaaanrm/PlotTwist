@@ -55,8 +55,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('collection_id', 'user_id')
     )
-    op.drop_table('watchlistitem')
-    op.drop_table('watchedmedia')
     op.add_column('collection_item', sa.Column('collection_id', sa.Uuid(), nullable=True))
     op.add_column('collection_item', sa.Column('position', sa.Integer(), nullable=False, server_default=sa.text('0')))
     op.alter_column('collection_item', 'collection_name',
