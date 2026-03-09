@@ -6,7 +6,10 @@ __pycache__/
 .venv/
 .env.local
 
+.env.*
+
 .env
+.env.prod
 .env.local
 .claude/
 .agents

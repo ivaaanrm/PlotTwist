@@ -1,0 +1,77 @@
+services:
+
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - prod-db-data:/var/lib/postgresql/data/pgdata
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    networks:
+      - default
+
+  backend:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command:
+      - bash
+      - "-c"
+      - "bash scripts/prestart.sh && fastapi run --workers 4 app/main.py"
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    env_file:
+      - .env.prod
+    environment:
+      - POSTGRES_SERVER=db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plottwist-api.rule=Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`))"
+      - "traefik.http.routers.plottwist-api.entrypoints=websecure"
+      - "traefik.http.routers.plottwist-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.plottwist-api.loadbalancer.server.port=8000"
+
+  frontend:
+    image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: "https://${DOMAIN}"
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plottwist-frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.plottwist-frontend.entrypoints=websecure"
+      - "traefik.http.routers.plottwist-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.plottwist-frontend.loadbalancer.server.port=80"
+
+volumes:
+  prod-db-data:
+
+networks:
+  traefik-public:
+    external: true
