@@ -57,6 +57,15 @@ async def search_media(
     return await provider.search(query=query, media_type=media_type, page=page)
 
 
+async def get_trending_media(
+    *,
+    provider: MediaProvider,
+    media_type: MediaType,
+) -> MediaSearchResponse:
+    """Get trending media from provider."""
+    return await provider.trending(media_type=media_type)
+
+
 async def get_and_cache_media(
     *,
     session: Session,

@@ -96,6 +96,43 @@ class TMDBProvider:
         )
 
 
+    async def trending(
+        self, media_type: MediaType, time_window: str = "week"
+    ) -> MediaSearchResponse:
+        tmdb_type = "movie" if media_type == MediaType.movie else "tv"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self._base_url}/trending/{tmdb_type}/{time_window}",
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        results = [
+            MediaSearchResult(
+                external_id=item["id"],
+                media_type=media_type,
+                title=item.get("title") or item.get("name", ""),
+                overview=item.get("overview"),
+                poster_path=item.get("poster_path"),
+                backdrop_path=item.get("backdrop_path"),
+                release_date=parse_date(
+                    item.get("release_date") or item.get("first_air_date")
+                ),
+                rating=item.get("vote_average"),
+                genres=[],
+            )
+            for item in data.get("results", [])
+        ][:10]
+
+        return MediaSearchResponse(
+            results=results,
+            page=1,
+            total_pages=1,
+            total_results=len(results),
+        )
+
+
 def _check_protocol() -> None:
     provider: MediaProvider = TMDBProvider(api_key="")  # noqa: F841
 

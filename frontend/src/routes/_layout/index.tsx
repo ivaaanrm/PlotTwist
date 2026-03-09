@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Compass, Film, Star, Users } from "lucide-react"
+import { Compass, Star, Users } from "lucide-react"
 
+import { MoviePoster } from "@/components/Common/MoviePoster"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -10,6 +11,7 @@ import {
   type FeedItemPublic,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
+import { formatRating, formatRelativeTime } from "@/lib/media"
 import { getInitials } from "@/utils"
 
 export const Route = createFileRoute("/_layout/")({
@@ -23,62 +25,10 @@ export const Route = createFileRoute("/_layout/")({
   }),
 })
 
-const posterBaseUrl = "https://image.tmdb.org/t/p/w500"
-
-function getPosterUrl(posterPath?: string | null) {
-  if (!posterPath) {
-    return null
-  }
-  return `${posterBaseUrl}${posterPath}`
-}
-
-function formatRelativeTime(value?: string | null) {
-  if (!value) {
-    return ""
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ""
-  }
-
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMinutes = Math.floor(diffMs / 60_000)
-  const diffHours = Math.floor(diffMs / 3_600_000)
-  const diffDays = Math.floor(diffMs / 86_400_000)
-
-  if (diffMinutes < 1) {
-    return "just now"
-  }
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`
-  }
-  if (diffHours < 24) {
-    return `${diffHours}h ago`
-  }
-  if (diffDays < 7) {
-    return `${diffDays}d ago`
-  }
-
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  })
-}
-
-function formatRating(value?: number | null) {
-  if (typeof value !== "number") {
-    return null
-  }
-  return value.toFixed(1)
-}
-
 function FeedCard({ item }: { item: FeedItemPublic }) {
   const user = item.user
   const ci = item.collection_item
   const media = ci.media
-  const posterUrl = getPosterUrl(media?.poster_path)
   const displayName = user.full_name || user.email
   const rating = formatRating(ci.rating)
   const relativeTime = formatRelativeTime(ci.created_at)
@@ -88,25 +38,13 @@ function FeedCard({ item }: { item: FeedItemPublic }) {
       id={`feed-item-${ci.id}`}
       className="group flex rounded-xl border bg-card overflow-hidden h-28 transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20"
     >
-      {/* Poster — left side, full height */}
+      {/* Poster */}
       <div className="w-20 shrink-0 bg-muted/30">
-        {posterUrl ? (
-          <img
-            src={posterUrl}
-            alt={`${media?.title ?? "Movie"} poster`}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Film className="size-6 text-muted-foreground/30" />
-          </div>
-        )}
+        <MoviePoster posterPath={media?.poster_path} title={media?.title ?? "Movie"} />
       </div>
 
-      {/* Info — right side */}
+      {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col justify-between p-3">
-        {/* Top: title + rating */}
         <div>
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-sm leading-snug line-clamp-1 group-hover:text-primary transition-colors">
@@ -181,7 +119,7 @@ function EmptyFeedState() {
   return (
     <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-16 text-center">
       <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-sm">
-        <Film className="size-7 text-primary/70" />
+        <Star className="size-7 text-primary/70" />
       </div>
       <h3 className="text-lg font-bold mb-1.5">Your feed is empty</h3>
       <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-7 leading-relaxed">

@@ -31,6 +31,19 @@ async def search_movies(
     )
 
 
+@router.get("/trending", response_model=MediaSearchResponse)
+async def trending_movies(
+    _current_user: CurrentUser,
+    provider: MediaProviderDep,
+    media_type: MediaType = MediaType.movie,
+) -> Any:
+    """Get trending media from external provider."""
+    return await media_service.get_trending_media(
+        provider=provider,
+        media_type=media_type,
+    )
+
+
 @router.get("/{tmdb_id}", response_model=MediaPublic)
 async def get_movie(
     tmdb_id: int,

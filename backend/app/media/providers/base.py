@@ -13,3 +13,7 @@ class MediaProvider(Protocol):
     async def get_details(
         self, external_id: int, media_type: MediaType
     ) -> MediaDetails: ...
+
+    async def trending(
+        self, media_type: MediaType, time_window: str = "week"
+    ) -> MediaSearchResponse: ...

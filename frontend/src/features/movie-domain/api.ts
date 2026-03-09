@@ -242,6 +242,21 @@ export const MovieDomainService = {
     })
   },
 
+  getTrending(data?: {
+    media_type?: MediaType
+  }): CancelablePromise<MovieSearchResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/movies/trending",
+      query: {
+        media_type: data?.media_type ?? "movie",
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  },
+
   searchMovies(data: {
     query: string
     page?: number
