@@ -3,11 +3,8 @@
 set -e
 set -x
 
-# Let the DB start
-python app/backend_pre_start.py
+# Let the DB start (wait for Postgres to be ready)
+python scripts/backend_pre_start.py
 
-# Run migrations
-alembic upgrade head
-
-# Create initial data in DB
-python app/initial_data.py
+# Initialize database schema and seed initial data
+python scripts/initial_data.py

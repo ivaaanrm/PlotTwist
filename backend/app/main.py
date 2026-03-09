@@ -1,10 +1,21 @@
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.main import api_router
-from app.core.config import settings
+from app import models  # noqa: F401
+from app.auth.router import router as auth_router
+from app.collections.router import router as collections_router
+from app.config import settings
+from app.exceptions import AppException
+from app.feed.router import router as feed_router
+from app.media.router import router as media_router
+from app.system.router import router as system_router
+from app.users.follows.router import router as follows_router
+from app.users.router import router as users_router
+
+SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -14,11 +25,29 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    generate_unique_id_function=custom_generate_unique_id,
-)
+app_kwargs = {
+    "title": settings.PROJECT_NAME,
+    "generate_unique_id_function": custom_generate_unique_id,
+}
+if settings.ENVIRONMENT in SHOW_DOCS_ENVIRONMENTS:
+    app_kwargs["openapi_url"] = f"{settings.API_V1_STR}/openapi.json"
+
+app = FastAPI(**app_kwargs)
+
+
+@app.exception_handler(AppException)
+async def app_exception_handler(_request, exc: AppException):
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+api_router = APIRouter()
+api_router.include_router(auth_router)
+api_router.include_router(users_router)
+api_router.include_router(system_router)
+api_router.include_router(media_router)
+api_router.include_router(collections_router)
+api_router.include_router(follows_router)
+api_router.include_router(feed_router)
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

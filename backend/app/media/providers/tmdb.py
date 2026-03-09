@@ -1,0 +1,169 @@
+from __future__ import annotations
+
+import httpx
+
+from app.media.models import MediaType
+from app.media.providers.base import MediaProvider
+from app.media.schemas import (
+    CastMember,
+    MediaDetails,
+    MediaSearchResponse,
+    MediaSearchResult,
+)
+from app.media.utils import parse_date
+
+_TMDB_PATHS = {
+    MediaType.movie: {"search": "/search/movie", "details": "/movie"},
+    MediaType.series: {"search": "/search/tv", "details": "/tv"},
+}
+
+
+class TMDBProvider:
+    """TMDB implementation of MediaProvider."""
+
+    def __init__(
+        self, api_key: str, base_url: str = "https://api.themoviedb.org/3"
+    ) -> None:
+        self._api_key = api_key
+        self._base_url = base_url
+
+    def _headers(self) -> dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self._api_key}",
+            "Accept": "application/json",
+        }
+
+    async def search(
+        self, query: str, media_type: MediaType, page: int = 1
+    ) -> MediaSearchResponse:
+        path = _TMDB_PATHS[media_type]["search"]
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self._base_url}{path}",
+                params={"query": query, "page": page, "include_adult": False},
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        results = [
+            MediaSearchResult(
+                external_id=item["id"],
+                media_type=media_type,
+                title=item.get("title") or item.get("name", ""),
+                overview=item.get("overview"),
+                poster_path=item.get("poster_path"),
+                backdrop_path=item.get("backdrop_path"),
+                release_date=parse_date(
+                    item.get("release_date") or item.get("first_air_date")
+                ),
+                rating=item.get("vote_average"),
+                genres=[],
+            )
+            for item in data.get("results", [])
+        ][:5]
+
+        return MediaSearchResponse(
+            results=results,
+            page=data.get("page", 1),
+            total_pages=1,
+            total_results=len(results),
+        )
+
+    async def get_details(
+        self, external_id: int, media_type: MediaType
+    ) -> MediaDetails:
+        path = _TMDB_PATHS[media_type]["details"]
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self._base_url}{path}/{external_id}",
+                params={"append_to_response": "credits"},
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        # Parse credits
+        credits = data.get("credits", {})
+
+        # Director: from crew for movies, created_by fallback for TV
+        director: str | None = None
+        for crew_member in credits.get("crew", []):
+            if crew_member.get("job") == "Director":
+                director = crew_member.get("name")
+                break
+        if not director and media_type == MediaType.series:
+            created_by = data.get("created_by", [])
+            if created_by:
+                director = created_by[0].get("name")
+
+        # Cast: first 10 members
+        cast_data = credits.get("cast", [])[:10]
+        cast = [
+            CastMember(
+                id=c["id"],
+                name=c.get("name", ""),
+                character=c.get("character"),
+                profile_path=c.get("profile_path"),
+            )
+            for c in cast_data
+        ]
+
+        return MediaDetails(
+            external_id=data["id"],
+            media_type=media_type,
+            title=data.get("title") or data.get("name", ""),
+            overview=data.get("overview"),
+            poster_path=data.get("poster_path"),
+            backdrop_path=data.get("backdrop_path"),
+            release_date=parse_date(
+                data.get("release_date") or data.get("first_air_date")
+            ),
+            rating=data.get("vote_average"),
+            genres=[g["name"] for g in data.get("genres", [])],
+            director=director,
+            cast=cast,
+        )
+
+    async def trending(
+        self, media_type: MediaType, time_window: str = "week"
+    ) -> MediaSearchResponse:
+        tmdb_type = "movie" if media_type == MediaType.movie else "tv"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self._base_url}/trending/{tmdb_type}/{time_window}",
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        results = [
+            MediaSearchResult(
+                external_id=item["id"],
+                media_type=media_type,
+                title=item.get("title") or item.get("name", ""),
+                overview=item.get("overview"),
+                poster_path=item.get("poster_path"),
+                backdrop_path=item.get("backdrop_path"),
+                release_date=parse_date(
+                    item.get("release_date") or item.get("first_air_date")
+                ),
+                rating=item.get("vote_average"),
+                genres=[],
+            )
+            for item in data.get("results", [])
+        ][:10]
+
+        return MediaSearchResponse(
+            results=results,
+            page=1,
+            total_pages=1,
+            total_results=len(results),
+        )
+
+
+def _check_protocol() -> None:
+    provider: MediaProvider = TMDBProvider(api_key="")  # noqa: F841
+
+
+_check_protocol()

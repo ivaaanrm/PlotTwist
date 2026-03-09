@@ -6,6 +6,20 @@ __pycache__/
 .venv/
 .env.local
 
+.env.*
+
 .env
-.claude
-.vscode
+.env.prod
+.env.local
+.claude/
+.agents
+.vscode/
+
+CLAUDE.md
+AGENTS.md
+
+docs/
+
+skills-lock.json
+
+.ruff_cache

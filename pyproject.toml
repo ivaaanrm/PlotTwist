@@ -1,2 +1,7 @@
 [tool.uv.workspace]
 members = ["backend"]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.4",
+]
