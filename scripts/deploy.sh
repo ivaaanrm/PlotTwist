@@ -1,0 +1,1 @@
+docker compose -f compose.prod.yml --env-file .env.prod build --no-cache && docker compose -f compose.prod.yml --env-file .env.prod up -d
