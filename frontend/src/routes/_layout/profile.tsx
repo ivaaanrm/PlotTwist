@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { EllipsisVertical, Star } from "lucide-react"
+import { EllipsisVertical, LogOut, Settings, Star } from "lucide-react"
 import { useMemo, useState } from "react"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -11,6 +11,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Separator } from "@/components/ui/separator"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -248,40 +258,30 @@ function EmptyListState({ message }: { message: string }) {
   )
 }
 
-function StatCard({
-  label,
-  value,
-}: {
-  label: string
-  value: string | number
-}) {
-  return (
-    <div className="rounded-xl border bg-card p-3 text-center">
-      <p className="text-[11px] text-muted-foreground font-medium">{label}</p>
-      <p className="text-lg font-bold mt-0.5">{value}</p>
-    </div>
-  )
-}
-
 function ProfileSkeleton() {
   return (
     <div className="space-y-5 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3">
-        <Skeleton className="size-14 rounded-full" />
-        <div className="space-y-1.5">
-          <Skeleton className="h-5 w-36" />
-          <Skeleton className="h-3.5 w-48" />
+      <div className="flex items-center gap-5">
+        <Skeleton className="size-16 rounded-full shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="flex justify-around">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <Skeleton className="h-5 w-8" />
+                <Skeleton className="h-3 w-12" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 rounded-xl" />
-        ))}
+      <div className="space-y-1">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-44" />
       </div>
       <Skeleton className="h-10 w-56" />
       <div className="space-y-2">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-xl" />
+          <Skeleton key={i} className="h-[100px]" />
         ))}
       </div>
     </div>
@@ -289,7 +289,7 @@ function ProfileSkeleton() {
 }
 
 function Profile() {
-  const { user: currentUser } = useAuth()
+  const { user: currentUser, logout } = useAuth()
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
@@ -402,48 +402,89 @@ function Profile() {
   const profileName = profile.user.full_name || profile.user.email
 
   return (
-    <div className="flex flex-col gap-5 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="space-y-0.5">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-          Profile
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Your movie activity and social stats.
-        </p>
-      </div>
-
-      {/* User info */}
-      <div className="flex items-center gap-3">
-        <Avatar className="size-14">
-          <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
+    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+      {/* Profile header — Instagram style */}
+      <div className="flex items-center gap-5">
+        <Avatar className="size-16 shrink-0">
+          <AvatarFallback className="text-xl font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
             {getInitials(profileName)}
           </AvatarFallback>
         </Avatar>
-        <div className="min-w-0">
-          <h2 className="text-lg font-bold truncate">{profileName}</h2>
-          <p className="text-sm text-muted-foreground truncate">
-            {profile.user.email}
-          </p>
+
+        {/* Stats inline */}
+        <div className="flex flex-1 justify-around">
+          <div className="flex flex-col items-center">
+            <span className="text-lg font-bold leading-tight">{profile.watched_count}</span>
+            <span className="text-[11px] text-muted-foreground">Movies</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-lg font-bold leading-tight">{followersQuery.data?.count ?? 0}</span>
+            <span className="text-[11px] text-muted-foreground">Followers</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-lg font-bold leading-tight">{followingQuery.data?.count ?? 0}</span>
+            <span className="text-[11px] text-muted-foreground">Following</span>
+          </div>
         </div>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <StatCard label="Watched" value={profile.watched_count} />
-        <StatCard
-          label="Avg Rating"
-          value={
-            typeof profile.average_rating === "number"
-              ? profile.average_rating.toFixed(1)
-              : "-"
-          }
-        />
-        <StatCard label="Watchlist" value={profile.watchlist.length} />
-        <StatCard
-          label="Social"
-          value={`${followersQuery.data?.count ?? "-"}/${followingQuery.data?.count ?? "-"}`}
-        />
+      {/* Name + manage button */}
+      <div className="flex items-center gap-3 -mt-1">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold leading-snug truncate">{profileName}</h2>
+        </div>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs gap-1.5 shrink-0">
+              <Settings className="size-3.5" />
+              Manage Profile
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Account</SheetTitle>
+              <SheetDescription>Your account details and settings.</SheetDescription>
+            </SheetHeader>
+            <div className="px-4 space-y-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="size-12 shrink-0">
+                  <AvatarFallback className="text-base font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
+                    {getInitials(profileName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold truncate">{profileName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{profile.user.email}</p>
+                </div>
+              </div>
+              <Separator />
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Name</p>
+                  <p className="text-sm mt-0.5">{profileName}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Email</p>
+                  <p className="text-sm mt-0.5">{profile.user.email}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Movies Watched</p>
+                  <p className="text-sm mt-0.5">{profile.watched_count}</p>
+                </div>
+              </div>
+            </div>
+            <SheetFooter>
+              <Button
+                variant="destructive"
+                className="w-full gap-2"
+                onClick={logout}
+              >
+                <LogOut className="size-4" />
+                Log Out
+              </Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* Tabs */}
