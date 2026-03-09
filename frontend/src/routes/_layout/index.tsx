@@ -62,12 +62,13 @@ function FeedCard({
       <article
         className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40"
       >
-        {/* Poster */}
-        <div className="w-[68px] shrink-0 p-1.5 pl-3 relative z-10">
-          <div className="h-full rounded-md overflow-hidden bg-muted">
+        {/* Poster - Full height, no margins, justified left */}
+        <div className="w-[68px] shrink-0 relative z-10">
+          <div className="h-full bg-muted">
             <MoviePoster
               posterPath={media?.poster_path}
               title={media?.title ?? "Movie"}
+              className="h-full w-full object-cover"
             />
           </div>
         </div>
@@ -142,8 +143,8 @@ function FeedSkeleton() {
           key={index}
           className="ticket-card flex bg-card dark:bg-[#25252d] overflow-hidden h-[100px] ring-1 ring-inset ring-black/5 dark:ring-white/5"
         >
-          <div className="w-[68px] shrink-0 p-1.5 pl-3">
-            <Skeleton className="h-full rounded-md bg-muted" />
+          <div className="w-[68px] shrink-0">
+            <Skeleton className="h-full w-full bg-muted" />
           </div>
           <div className="flex-1 px-3 py-2.5 flex flex-col justify-center gap-1.5">
             <Skeleton className="h-4 w-3/5 bg-muted" />

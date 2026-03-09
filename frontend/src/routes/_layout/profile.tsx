@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { LogOut, Settings, Star } from "lucide-react"
 import { useMemo, useState } from "react"
+import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { SwipeableDeleteCard } from "@/components/Common/SwipeableDeleteCard"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -22,6 +23,7 @@ import {
   MovieDomainService,
   type WatchedMoviePublic,
   type WatchlistItemPublic,
+  type FeedItemPublic,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -70,8 +72,10 @@ function SortPills<T extends string>({
 
 function WatchedMovieItem({
   item,
+  onClick,
 }: {
   item: WatchedMoviePublic
+  onClick: () => void
 }) {
   const movie = item.movie
   const userRating = formatRating(item.rating)
@@ -79,15 +83,30 @@ function WatchedMovieItem({
   const date = formatDate(item.watched_at)
 
   return (
-    <div className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onClick()
+        }
+      }}
+      className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]"
+    >
       {/* Main card */}
       <article
         className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40"
       >
-        {/* Poster */}
-        <div className="w-[68px] shrink-0 p-1.5 pl-3 relative z-10">
-          <div className="h-full rounded-md overflow-hidden bg-muted">
-            <MoviePoster posterPath={movie?.poster_path} title={movie?.title ?? "Movie"} />
+        {/* Poster - Full height, no margins, justified left */}
+        <div className="w-[68px] shrink-0 relative z-10">
+          <div className="h-full bg-muted">
+            <MoviePoster
+              posterPath={movie?.poster_path}
+              title={movie?.title ?? "Movie"}
+              className="h-full w-full object-cover"
+            />
           </div>
         </div>
 
@@ -147,23 +166,40 @@ function WatchedMovieItem({
 
 function WatchlistMovieItem({
   item,
+  onClick,
 }: {
   item: WatchlistItemPublic
+  onClick: () => void
 }) {
   const movie = item.movie
   const tmdbRating = formatTmdbRating(movie?.tmdb_rating)
   const date = formatDate(item.added_at)
 
   return (
-    <div className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onClick()
+        }
+      }}
+      className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]"
+    >
       {/* Main card */}
       <article
         className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40"
       >
-        {/* Poster */}
-        <div className="w-[68px] shrink-0 p-1.5 pl-3 relative z-10">
-          <div className="h-full rounded-md overflow-hidden bg-muted">
-            <MoviePoster posterPath={movie?.poster_path} title={movie?.title ?? "Movie"} />
+        {/* Poster - Full height, no margins, justified left */}
+        <div className="w-[68px] shrink-0 relative z-10">
+          <div className="h-full bg-muted">
+            <MoviePoster
+              posterPath={movie?.poster_path}
+              title={movie?.title ?? "Movie"}
+              className="h-full w-full object-cover"
+            />
           </div>
         </div>
 
@@ -261,6 +297,7 @@ function Profile() {
   const [watchedSort, setWatchedSort] = useState<WatchedSort>("date")
   const [watchlistSort, setWatchlistSort] = useState<WatchlistSort>("date")
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [selectedItem, setSelectedItem] = useState<FeedItemPublic | null>(null)
 
   const profileQuery = useQuery({
     queryKey: ["profile", currentUser?.id],
@@ -483,7 +520,24 @@ function Profile() {
                   onDelete={() => handleRemove(item.id)}
                   isDeleting={removingId === item.id && removeItemMutation.isPending}
                 >
-                  <WatchedMovieItem item={item} />
+                  <WatchedMovieItem
+                    item={item}
+                    onClick={() =>
+                      setSelectedItem({
+                        id: item.id,
+                        user: profile.user,
+                        collection_item: {
+                          id: item.id,
+                          media_id: item.movie_id,
+                          user_id: item.user_id,
+                          rating: item.rating,
+                          created_at: item.watched_at,
+                          updated_at: item.watched_at,
+                          media: item.movie,
+                        },
+                      } as unknown as FeedItemPublic)
+                    }
+                  />
                 </SwipeableDeleteCard>
               ))}
             </div>
@@ -509,13 +563,39 @@ function Profile() {
                   onDelete={() => handleRemove(item.id)}
                   isDeleting={removingId === item.id && removeItemMutation.isPending}
                 >
-                  <WatchlistMovieItem item={item} />
+                  <WatchlistMovieItem
+                    item={item}
+                    onClick={() =>
+                      setSelectedItem({
+                        id: item.id,
+                        user: profile.user,
+                        collection_item: {
+                          id: item.id,
+                          media_id: item.movie_id,
+                          user_id: item.user_id,
+                          rating: null,
+                          created_at: item.added_at,
+                          updated_at: item.added_at,
+                          media: item.movie,
+                        },
+                      } as unknown as FeedItemPublic)
+                    }
+                  />
                 </SwipeableDeleteCard>
               ))}
             </div>
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Detail Dialog */}
+      <MediaDetailDialog
+        open={selectedItem !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedItem(null)
+        }}
+        item={selectedItem}
+      />
     </div>
   )
 }
