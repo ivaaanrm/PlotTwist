@@ -1,10 +1,11 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Compass, Star, Users } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
+import { SwipeableFeedCard } from "@/components/Common/SwipeableFeedCard"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -13,8 +14,9 @@ import {
   type FeedItemPublic,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
+import useCustomToast from "@/hooks/useCustomToast"
 import { formatRating, formatRelativeTime, formatTmdbRating } from "@/lib/media"
-import { getInitials } from "@/utils"
+import { getInitials, handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/")({
   component: Home,
@@ -54,11 +56,11 @@ function FeedCard({
           onClick()
         }
       }}
-      className="ticket-card group flex bg-[#1e1e24] dark:bg-[#1e1e24] text-white overflow-hidden h-[100px] transition-all duration-200 hover:shadow-xl hover:shadow-black/30 cursor-pointer select-none relative"
+      className="ticket-card group flex bg-[#1e1e24] dark:bg-[#1e1e24] text-white overflow-hidden h-[100px] transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 hover:brightness-110 active:scale-[0.98] active:brightness-95 cursor-pointer select-none relative"
     >
       {/* Poster */}
       <div className="w-[68px] shrink-0 p-1.5 pl-3">
-        <div className="h-full rounded-md overflow-hidden">
+        <div className="h-full rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105">
           <MoviePoster
             posterPath={media?.poster_path}
             title={media?.title ?? "Movie"}
@@ -67,7 +69,7 @@ function FeedCard({
       </div>
 
       {/* Main ticket body — middle */}
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-3 py-2.5">
         <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 text-white group-hover:text-amber-400 transition-colors">
           {media?.title ?? "Untitled"}
         </h3>
@@ -80,15 +82,12 @@ function FeedCard({
           <span className="text-[11px] text-gray-400 truncate">
             {displayName}
           </span>
-          {watchedDate && (
-            <>
-              <span className="text-[10px] text-gray-600">·</span>
-              <span className="text-[10px] text-gray-500 whitespace-nowrap">
-                {watchedDate}
-              </span>
-            </>
-          )}
         </div>
+        {watchedDate && (
+          <span className="text-[10px] text-gray-500 pl-[22px]">
+            {watchedDate}
+          </span>
+        )}
       </div>
 
       {/* Dashed divider — tear-off line */}
@@ -102,7 +101,7 @@ function FeedCard({
             <span className="text-[15px] font-bold text-amber-400 leading-none">
               {userRating}
             </span>
-            <span className="text-[8px] text-gray-500 uppercase tracking-widest font-medium">You</span>
+            <span className="text-[8px] text-gray-600 uppercase tracking-widest font-medium">YOU</span>
           </div>
         )}
         {tmdbRating && (
@@ -152,11 +151,13 @@ function FeedSkeleton() {
           <div className="flex items-center gap-3 px-3">
             <div className="flex flex-col items-center gap-1">
               <Skeleton className="size-4 rounded-full bg-gray-700/50" />
-              <Skeleton className="h-5 w-7 bg-gray-700/50" />
+              <Skeleton className="h-4 w-7 bg-gray-700/50" />
+              <Skeleton className="h-2 w-8 bg-gray-700/50" />
             </div>
             <div className="flex flex-col items-center gap-1">
               <Skeleton className="size-4 rounded-full bg-gray-700/50" />
-              <Skeleton className="h-5 w-7 bg-gray-700/50" />
+              <Skeleton className="h-4 w-7 bg-gray-700/50" />
+              <Skeleton className="h-2 w-8 bg-gray-700/50" />
             </div>
           </div>
         </div>
@@ -195,6 +196,8 @@ function EmptyFeedState() {
 
 function Home() {
   const { user: currentUser } = useAuth()
+  const queryClient = useQueryClient()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
   const [selectedItem, setSelectedItem] = useState<FeedItemPublic | null>(null)
 
   const feedQuery = useQuery({
@@ -202,6 +205,39 @@ function Home() {
     queryFn: () => MovieDomainService.getFeed({ skip: 0, limit: 50 }),
     enabled: Boolean(currentUser),
   })
+
+  const watchlistQuery = useQuery({
+    queryKey: ["movies", "watchlist"],
+    queryFn: () => MovieDomainService.listWatchlist({ skip: 0, limit: 200 }),
+    enabled: Boolean(currentUser),
+  })
+
+  const watchlistTmdbIds = useMemo(() => {
+    const ids = new Set<number>()
+    for (const item of watchlistQuery.data?.data ?? []) {
+      const tmdbId = item.movie?.tmdb_id ?? item.media?.tmdb_id
+      if (typeof tmdbId === "number") ids.add(tmdbId)
+    }
+    return ids
+  }, [watchlistQuery.data])
+
+  const addToWatchlistMutation = useMutation({
+    mutationFn: (payload: { tmdbId: number; mediaType: string }) =>
+      MovieDomainService.addToWatchlist({
+        tmdb_id: payload.tmdbId,
+        media_type: payload.mediaType as "movie" | "series",
+      }),
+    onSuccess: () => showSuccessToast("Added to watchlist"),
+    onError: handleError.bind(showErrorToast),
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["movies", "watchlist"] })
+      await queryClient.invalidateQueries({ queryKey: ["profile"] })
+    },
+  })
+
+  const handleAddToWatchlist = (tmdbId: number, mediaType: string) => {
+    addToWatchlistMutation.mutate({ tmdbId, mediaType })
+  }
 
   const feedItems = feedQuery.data?.data ?? []
 
@@ -233,13 +269,24 @@ function Home() {
 
       {!feedQuery.isLoading && !feedQuery.isError && feedItems.length > 0 && (
         <div className="space-y-3">
-          {feedItems.map((item) => (
-            <FeedCard
-              key={item.collection_item.id}
-              item={item}
-              onClick={() => setSelectedItem(item)}
-            />
-          ))}
+          {feedItems.map((item) => {
+            const tmdbId = item.collection_item.media?.tmdb_id
+            const mediaType = item.collection_item.media?.media_type ?? "movie"
+            return (
+              <SwipeableFeedCard
+                key={item.collection_item.id}
+                isInWatchlist={watchlistTmdbIds.has(tmdbId ?? -1)}
+                onAddToWatchlist={() => {
+                  if (tmdbId) handleAddToWatchlist(tmdbId, mediaType)
+                }}
+              >
+                <FeedCard
+                  item={item}
+                  onClick={() => setSelectedItem(item)}
+                />
+              </SwipeableFeedCard>
+            )
+          })}
           {feedQuery.data && feedQuery.data.count > feedItems.length && (
             <p className="text-center text-xs text-muted-foreground pt-2">
               Showing {feedItems.length} of {feedQuery.data.count} items

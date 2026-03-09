@@ -119,7 +119,7 @@ function WatchedMovieItem({
             <span className="text-[15px] font-bold text-amber-400 leading-none">
               {userRating}
             </span>
-            <span className="text-[8px] text-gray-500 uppercase tracking-widest font-medium">You</span>
+            <span className="text-[8px] text-gray-600 uppercase tracking-widest font-medium">YOU</span>
           </div>
         )}
         {tmdbRating && (
