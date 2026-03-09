@@ -1,16 +1,16 @@
 import {
+  closestCenter,
   DndContext,
   type DragEndEvent,
   PointerSensor,
   TouchSensor,
-  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core"
 import {
-  SortableContext,
   arrayMove,
   rectSortingStrategy,
+  SortableContext,
   useSortable,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -42,10 +42,10 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  MovieDomainService,
   type CollectionDetailPublic,
   type CollectionItemPublicNamed,
   type CollectionMemberPublic,
+  MovieDomainService,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -147,7 +147,11 @@ function InviteDialog({
   const usersQuery = useQuery({
     queryKey: ["social", "users", debouncedQuery],
     queryFn: () =>
-      MovieDomainService.searchUsers({ query: debouncedQuery, skip: 0, limit: 20 }),
+      MovieDomainService.searchUsers({
+        query: debouncedQuery,
+        skip: 0,
+        limit: 20,
+      }),
     enabled: debouncedQuery.length > 0,
   })
 
@@ -207,7 +211,9 @@ function InviteDialog({
                 >
                   <Avatar className="size-7">
                     <AvatarFallback className="text-[9px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                      {getInitials(member.user_full_name || member.user_email || "?")}
+                      {getInitials(
+                        member.user_full_name || member.user_email || "?",
+                      )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
@@ -223,7 +229,9 @@ function InviteDialog({
                       variant="ghost"
                       size="icon"
                       className="size-7 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeMemberMutation.mutate(member.user_id)}
+                      onClick={() =>
+                        removeMemberMutation.mutate(member.user_id)
+                      }
                       disabled={removeMemberMutation.isPending}
                     >
                       <Trash2 className="size-3.5" />
@@ -322,8 +330,7 @@ function CollectionDetail() {
 
   const collectionQuery = useQuery({
     queryKey: ["collections", collectionId],
-    queryFn: () =>
-      MovieDomainService.getNamedCollection({ collectionId }),
+    queryFn: () => MovieDomainService.getNamedCollection({ collectionId }),
     enabled: Boolean(collectionId),
   })
 
@@ -445,13 +452,16 @@ function CollectionDetail() {
                 className="size-6 border-2 border-background"
               >
                 <AvatarFallback className="text-[9px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                  {getInitials(member.user_full_name || member.user_email || "?")}
+                  {getInitials(
+                    member.user_full_name || member.user_email || "?",
+                  )}
                 </AvatarFallback>
               </Avatar>
             ))}
           </div>
           <span className="text-[11px] text-muted-foreground">
-            {collection.members.length} {collection.members.length === 1 ? "member" : "members"}
+            {collection.members.length}{" "}
+            {collection.members.length === 1 ? "member" : "members"}
           </span>
         </div>
 

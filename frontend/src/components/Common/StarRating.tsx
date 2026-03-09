@@ -55,7 +55,9 @@ export function StarRating({
                 {leftFilled && (
                   <Star
                     className="absolute inset-0 size-7 fill-amber-400 text-amber-400 transition-colors duration-150"
-                    style={{ clipPath: rightFilled ? undefined : "inset(0 50% 0 0)" }}
+                    style={{
+                      clipPath: rightFilled ? undefined : "inset(0 50% 0 0)",
+                    }}
                   />
                 )}
                 {rightFilled && !leftFilled && (

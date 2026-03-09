@@ -1,4 +1,11 @@
-import { CircleUser, Home, Layers, Search, UserRoundPlus, Users } from "lucide-react"
+import {
+  CircleUser,
+  Home,
+  Layers,
+  Search,
+  UserRoundPlus,
+  Users,
+} from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"

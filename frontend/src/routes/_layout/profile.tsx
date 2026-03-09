@@ -20,10 +20,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  type FeedItemPublic,
   MovieDomainService,
   type WatchedMoviePublic,
   type WatchlistItemPublic,
-  type FeedItemPublic,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -96,9 +96,7 @@ function WatchedMovieItem({
       className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]"
     >
       {/* Main card */}
-      <article
-        className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40"
-      >
+      <article className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40">
         {/* Poster - Full height, no margins, justified left */}
         <div className="w-[68px] shrink-0 relative z-10">
           <div className="h-full bg-muted">
@@ -133,21 +131,31 @@ function WatchedMovieItem({
               <span className="text-[15px] font-bold text-amber-400 leading-none">
                 {userRating}
               </span>
-              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">YOU</span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">
+                YOU
+              </span>
             </div>
           )}
           {tmdbRating && (
             <div className="flex flex-col items-center gap-0.5">
-              <Star className="size-4 text-muted-foreground" strokeWidth={1.5} />
+              <Star
+                className="size-4 text-muted-foreground"
+                strokeWidth={1.5}
+              />
               <span className="text-[15px] font-semibold text-card-foreground leading-none">
                 {tmdbRating}
               </span>
-              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">TMDB</span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">
+                TMDB
+              </span>
             </div>
           )}
 
           {/* Decorative barcode */}
-          <div className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5" aria-hidden="true">
+          <div
+            className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5"
+            aria-hidden="true"
+          >
             {[3, 1.5, 3, 1, 2, 1.5, 3, 1, 2, 3, 1.5, 1].map((w, i) => (
               <div
                 key={i}
@@ -189,9 +197,7 @@ function WatchlistMovieItem({
       className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]"
     >
       {/* Main card */}
-      <article
-        className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40"
-      >
+      <article className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40">
         {/* Poster - Full height, no margins, justified left */}
         <div className="w-[68px] shrink-0 relative z-10">
           <div className="h-full bg-muted">
@@ -222,16 +228,24 @@ function WatchlistMovieItem({
         <div className="flex items-center gap-2.5 px-3 shrink-0 relative z-10">
           {tmdbRating && (
             <div className="flex flex-col items-center gap-0.5">
-              <Star className="size-4 text-muted-foreground" strokeWidth={1.5} />
+              <Star
+                className="size-4 text-muted-foreground"
+                strokeWidth={1.5}
+              />
               <span className="text-[15px] font-semibold text-card-foreground leading-none">
                 {tmdbRating}
               </span>
-              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">TMDB</span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">
+                TMDB
+              </span>
             </div>
           )}
 
           {/* Decorative barcode */}
-          <div className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5" aria-hidden="true">
+          <div
+            className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5"
+            aria-hidden="true"
+          >
             {[3, 1.5, 3, 1, 2, 1.5, 3, 1, 2, 3, 1.5, 1].map((w, i) => (
               <div
                 key={i}
@@ -353,7 +367,6 @@ function Profile() {
           const rb = b.rating ?? -1
           return rb - ra
         })
-      case "date":
       default:
         return items.sort((a, b) => {
           const da = a.watched_at ?? ""
@@ -371,7 +384,6 @@ function Profile() {
         return items.sort((a, b) =>
           (a.movie?.title ?? "").localeCompare(b.movie?.title ?? ""),
         )
-      case "date":
       default:
         return items.sort((a, b) => {
           const da = a.added_at ?? ""
@@ -416,15 +428,21 @@ function Profile() {
         {/* Stats inline */}
         <div className="flex flex-1 justify-around">
           <div className="flex flex-col items-center">
-            <span className="text-lg font-bold leading-tight">{profile.watched_count}</span>
+            <span className="text-lg font-bold leading-tight">
+              {profile.watched_count}
+            </span>
             <span className="text-[11px] text-muted-foreground">Movies</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-lg font-bold leading-tight">{followersQuery.data?.count ?? 0}</span>
+            <span className="text-lg font-bold leading-tight">
+              {followersQuery.data?.count ?? 0}
+            </span>
             <span className="text-[11px] text-muted-foreground">Followers</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-lg font-bold leading-tight">{followingQuery.data?.count ?? 0}</span>
+            <span className="text-lg font-bold leading-tight">
+              {followingQuery.data?.count ?? 0}
+            </span>
             <span className="text-[11px] text-muted-foreground">Following</span>
           </div>
         </div>
@@ -433,11 +451,17 @@ function Profile() {
       {/* Name + manage button */}
       <div className="flex items-center gap-3 -mt-1">
         <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-bold leading-snug truncate">{profileName}</h2>
+          <h2 className="text-sm font-bold leading-snug truncate">
+            {profileName}
+          </h2>
         </div>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs gap-1.5 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 rounded-lg text-xs gap-1.5 shrink-0"
+            >
               <Settings className="size-3.5" />
               Manage Profile
             </Button>
@@ -445,7 +469,9 @@ function Profile() {
           <SheetContent side="right">
             <SheetHeader>
               <SheetTitle>Account</SheetTitle>
-              <SheetDescription>Your account details and settings.</SheetDescription>
+              <SheetDescription>
+                Your account details and settings.
+              </SheetDescription>
             </SheetHeader>
             <div className="px-4 space-y-4">
               <div className="flex items-center gap-3">
@@ -455,22 +481,32 @@ function Profile() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{profileName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{profile.user.email}</p>
+                  <p className="text-sm font-semibold truncate">
+                    {profileName}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {profile.user.email}
+                  </p>
                 </div>
               </div>
               <Separator />
               <div className="space-y-3">
                 <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Name</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
+                    Name
+                  </p>
                   <p className="text-sm mt-0.5">{profileName}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Email</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
+                    Email
+                  </p>
                   <p className="text-sm mt-0.5">{profile.user.email}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Movies Watched</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
+                    Movies Watched
+                  </p>
                   <p className="text-sm mt-0.5">{profile.watched_count}</p>
                 </div>
               </div>
@@ -518,7 +554,9 @@ function Profile() {
                 <SwipeableDeleteCard
                   key={item.id}
                   onDelete={() => handleRemove(item.id)}
-                  isDeleting={removingId === item.id && removeItemMutation.isPending}
+                  isDeleting={
+                    removingId === item.id && removeItemMutation.isPending
+                  }
                 >
                   <WatchedMovieItem
                     item={item}
@@ -561,7 +599,9 @@ function Profile() {
                 <SwipeableDeleteCard
                   key={item.id}
                   onDelete={() => handleRemove(item.id)}
-                  isDeleting={removingId === item.id && removeItemMutation.isPending}
+                  isDeleting={
+                    removingId === item.id && removeItemMutation.isPending
+                  }
                 >
                   <WatchlistMovieItem
                     item={item}

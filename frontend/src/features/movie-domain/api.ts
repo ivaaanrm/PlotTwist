@@ -224,7 +224,9 @@ function normalizeWatchedResponse(
 }
 
 function normalizeUserProfile(profile: BackendUserProfile): UserProfile {
-  const watchedMovies = (profile.watched_media ?? []).map(normalizeCollectionItemToWatched)
+  const watchedMovies = (profile.watched_media ?? []).map(
+    normalizeCollectionItemToWatched,
+  )
   return {
     user: profile.user,
     watched_count: profile.watched_count,

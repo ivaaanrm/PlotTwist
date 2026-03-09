@@ -8,7 +8,11 @@ type MoviePosterProps = {
   className?: string
 }
 
-export function MoviePoster({ posterPath, title, className }: MoviePosterProps) {
+export function MoviePoster({
+  posterPath,
+  title,
+  className,
+}: MoviePosterProps) {
   const posterUrl = getPosterUrl(posterPath)
 
   if (posterUrl) {
@@ -23,7 +27,12 @@ export function MoviePoster({ posterPath, title, className }: MoviePosterProps) 
   }
 
   return (
-    <div className={cn("flex h-full w-full items-center justify-center bg-muted/50", className)}>
+    <div
+      className={cn(
+        "flex h-full w-full items-center justify-center bg-muted/50",
+        className,
+      )}
+    >
       <Film className="size-6 text-muted-foreground/30" />
     </div>
   )

@@ -12,8 +12,8 @@ import {
   type UserPublic,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
-import { useDebounce } from "@/hooks/useDebounce"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDebounce } from "@/hooks/useDebounce"
 import { getInitials, handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/social")({
@@ -120,12 +120,19 @@ function Social() {
   const debouncedQuery = useDebounce(searchInput.trim(), 400)
 
   const [sendingUserId, setSendingUserId] = useState<string | null>(null)
-  const [requestedUserIds, setRequestedUserIds] = useState<Set<string>>(new Set())
+  const [requestedUserIds, setRequestedUserIds] = useState<Set<string>>(
+    new Set(),
+  )
 
   // Note: users are only fetched when there is a search query
   const usersQuery = useQuery({
     queryKey: ["social", "users", debouncedQuery],
-    queryFn: () => MovieDomainService.searchUsers({ query: debouncedQuery, skip: 0, limit: 50 }),
+    queryFn: () =>
+      MovieDomainService.searchUsers({
+        query: debouncedQuery,
+        skip: 0,
+        limit: 50,
+      }),
     enabled: Boolean(currentUser?.id) && debouncedQuery.length > 0,
   })
 
@@ -141,7 +148,8 @@ function Social() {
   )
 
   const sendFollowRequestMutation = useMutation({
-    mutationFn: (userId: string) => MovieDomainService.sendFollowRequest({ userId }),
+    mutationFn: (userId: string) =>
+      MovieDomainService.sendFollowRequest({ userId }),
     onSuccess: (_, userId) => {
       setRequestedUserIds((previous) => {
         const next = new Set(previous)
@@ -154,8 +162,12 @@ function Social() {
     onSettled: async () => {
       setSendingUserId(null)
       await queryClient.invalidateQueries({ queryKey: ["social", "following"] })
-      await queryClient.invalidateQueries({ queryKey: ["profile", "followers"] })
-      await queryClient.invalidateQueries({ queryKey: ["profile", "following"] })
+      await queryClient.invalidateQueries({
+        queryKey: ["profile", "followers"],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ["profile", "following"],
+      })
     },
   })
 
@@ -172,7 +184,9 @@ function Social() {
     <div className="flex flex-col gap-5 max-w-2xl mx-auto">
       {/* Header */}
       <div className="space-y-0.5">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Find Users</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+          Find Users
+        </h1>
         <p className="text-muted-foreground text-sm">
           Search for users to follow and connect with.
         </p>
@@ -207,13 +221,16 @@ function Social() {
           </div>
         )}
 
-        {!usersQuery.isLoading && !usersQuery.isError && debouncedQuery && users.length === 0 && (
-          <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              No users found for "{debouncedQuery}". Try another search term.
-            </p>
-          </div>
-        )}
+        {!usersQuery.isLoading &&
+          !usersQuery.isError &&
+          debouncedQuery &&
+          users.length === 0 && (
+            <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-12 text-center">
+              <p className="text-sm text-muted-foreground">
+                No users found for "{debouncedQuery}". Try another search term.
+              </p>
+            </div>
+          )}
 
         {!usersQuery.isLoading && !usersQuery.isError && users.length > 0 && (
           <div className="space-y-2">
@@ -224,7 +241,8 @@ function Social() {
                 isFollowing={followingUserIds.has(user.id)}
                 isRequested={requestedUserIds.has(user.id)}
                 isSendingRequest={
-                  sendFollowRequestMutation.isPending && sendingUserId === user.id
+                  sendFollowRequestMutation.isPending &&
+                  sendingUserId === user.id
                 }
                 onFollow={handleFollow}
               />

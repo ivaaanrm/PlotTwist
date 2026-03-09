@@ -1,16 +1,20 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
+import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router"
+import { UserRoundPlus } from "lucide-react"
 
 import { Footer } from "@/components/Common/Footer"
 import { Logo } from "@/components/Common/Logo"
 import { MobileBottomNav } from "@/components/Common/MobileBottomNav"
 import { NotificationsMenu } from "@/components/Common/NotificationsMenu"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { isLoggedIn } from "@/hooks/useAuth"
+import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { getInitials } from "@/utils"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
@@ -24,6 +28,8 @@ export const Route = createFileRoute("/_layout")({
 })
 
 function Layout() {
+  const { user: currentUser } = useAuth()
+
   return (
     <SidebarProvider>
       {/* Desktop sidebar — hidden on mobile */}
@@ -32,16 +38,63 @@ function Layout() {
       </div>
       <SidebarInset>
         {/* Mobile header — visible only on mobile */}
-        <header className="md:hidden sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between border-b bg-card/80 backdrop-blur-xl px-4">
-          <div className="w-10"> {/* Spacer to balance flex-between */}</div>
+        <header className="md:hidden sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between border-b bg-card/80 backdrop-blur-xl px-4">
           <Logo variant="full" />
-          <NotificationsMenu />
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full"
+              asChild
+            >
+              <Link to="/social">
+                <UserRoundPlus className="size-5 text-muted-foreground" />
+              </Link>
+            </Button>
+            <NotificationsMenu />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full"
+              asChild
+            >
+              <Link to="/profile">
+                <Avatar className="size-7">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    {currentUser
+                      ? getInitials(
+                          currentUser.full_name || currentUser.email || "User",
+                        )
+                      : "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            </Button>
+          </div>
         </header>
         {/* Desktop header with sidebar trigger — hidden on mobile */}
-        <header className="hidden md:flex sticky top-0 z-10 h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="hidden md:flex sticky top-0 z-50 h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
             <NotificationsMenu />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full"
+              asChild
+            >
+              <Link to="/profile">
+                <Avatar className="size-8 group-data-[collapsible=icon]:size-7">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    {currentUser
+                      ? getInitials(
+                          currentUser.full_name || currentUser.email || "User",
+                        )
+                      : "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            </Button>
           </div>
         </header>
         <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">

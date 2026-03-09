@@ -10,8 +10,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  MovieDomainService,
   type FeedItemPublic,
+  MovieDomainService,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -59,9 +59,7 @@ function FeedCard({
       id={`feed-item-${ci.id}`}
     >
       {/* Main card */}
-      <article
-        className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40"
-      >
+      <article className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40">
         {/* Poster - Full height, no margins, justified left */}
         <div className="w-[68px] shrink-0 relative z-10">
           <div className="h-full bg-muted">
@@ -106,21 +104,31 @@ function FeedCard({
               <span className="text-[15px] font-bold text-amber-400 leading-none">
                 {userRating}
               </span>
-              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">YOU</span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">
+                YOU
+              </span>
             </div>
           )}
           {tmdbRating && (
             <div className="flex flex-col items-center gap-0.5">
-              <Star className="size-4 text-muted-foreground" strokeWidth={1.5} />
+              <Star
+                className="size-4 text-muted-foreground"
+                strokeWidth={1.5}
+              />
               <span className="text-[15px] font-semibold text-card-foreground leading-none">
                 {tmdbRating}
               </span>
-              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">TMDB</span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">
+                TMDB
+              </span>
             </div>
           )}
 
           {/* Decorative barcode */}
-          <div className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5" aria-hidden="true">
+          <div
+            className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5"
+            aria-hidden="true"
+          >
             {[3, 1.5, 3, 1, 2, 1.5, 3, 1, 2, 3, 1.5, 1].map((w, i) => (
               <div
                 key={i}
@@ -286,10 +294,7 @@ function Home() {
                   if (tmdbId) handleAddToWatchlist(tmdbId, mediaType)
                 }}
               >
-                <FeedCard
-                  item={item}
-                  onClick={() => setSelectedItem(item)}
-                />
+                <FeedCard item={item} onClick={() => setSelectedItem(item)} />
               </SwipeableFeedCard>
             )
           })}

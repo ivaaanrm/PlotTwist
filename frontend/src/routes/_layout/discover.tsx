@@ -35,9 +35,9 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  MovieDomainService,
   type CollectionPublic,
   type MediaType,
+  MovieDomainService,
   type MovieSearchResult,
 } from "@/features/movie-domain/api"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -204,8 +204,8 @@ function DiscoverCard({
           <DialogHeader>
             <DialogTitle>Mark as watched</DialogTitle>
             <DialogDescription>
-              Optionally rate{" "}
-              <span className="font-medium">{movie.title}</span>.
+              Optionally rate <span className="font-medium">{movie.title}</span>
+              .
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -451,10 +451,11 @@ function Discover() {
           <button
             type="button"
             onClick={() => setMediaType("movie")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${mediaType === "movie"
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              mediaType === "movie"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
-              }`}
+            }`}
           >
             <Monitor className="size-3.5" />
             Movies
@@ -462,10 +463,11 @@ function Discover() {
           <button
             type="button"
             onClick={() => setMediaType("series")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${mediaType === "series"
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              mediaType === "series"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
-              }`}
+            }`}
           >
             <Tv className="size-3.5" />
             Series

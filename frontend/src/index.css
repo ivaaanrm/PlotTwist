@@ -128,20 +128,52 @@
 .ticket-card {
   --notch-size: 10px;
   --notch-spacing: 14px;
+  /* top-left notch */
   mask-image:
-    /* top-left notch */
-    radial-gradient(circle at 0% 0%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px)),
+    radial-gradient(
+      circle at 0% 0%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    ),
     /* bottom-left notch */
-    radial-gradient(circle at 0% 100%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px)),
+    radial-gradient(
+      circle at 0% 100%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    ),
     /* top-right notch */
-    radial-gradient(circle at 100% 0%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px)),
+    radial-gradient(
+      circle at 100% 0%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    ),
     /* bottom-right notch */
-    radial-gradient(circle at 100% 100%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px));
+    radial-gradient(
+      circle at 100% 100%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    );
   mask-composite: intersect;
   -webkit-mask-image:
-    radial-gradient(circle at 0% 0%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px)),
-    radial-gradient(circle at 0% 100%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px)),
-    radial-gradient(circle at 100% 0%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px)),
-    radial-gradient(circle at 100% 100%, transparent var(--notch-size), black calc(var(--notch-size) + 0.5px));
+    radial-gradient(
+      circle at 0% 0%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      transparent var(--notch-size),
+      black calc(var(--notch-size) + 0.5px)
+    );
   -webkit-mask-composite: source-in;
 }

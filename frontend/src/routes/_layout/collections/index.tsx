@@ -1,12 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import {
-  EllipsisVertical,
-  Layers,
-  Plus,
-  Trash2,
-  Users,
-} from "lucide-react"
+import { EllipsisVertical, Layers, Plus, Trash2, Users } from "lucide-react"
 import { useState } from "react"
 
 import { MoviePoster } from "@/components/Common/MoviePoster"
@@ -32,8 +26,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  MovieDomainService,
   type CollectionPublic,
+  MovieDomainService,
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -46,11 +40,7 @@ export const Route = createFileRoute("/_layout/collections/")({
   }),
 })
 
-function CollectionMosaic({
-  posters,
-}: {
-  posters: (string | null)[]
-}) {
+function CollectionMosaic({ posters }: { posters: (string | null)[] }) {
   const slots = [0, 1, 2, 3]
 
   return (
@@ -104,7 +94,8 @@ function CollectionCard({
               {collection.name}
             </h3>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {collection.item_count} {collection.item_count === 1 ? "item" : "items"}
+              {collection.item_count}{" "}
+              {collection.item_count === 1 ? "item" : "items"}
             </p>
           </Link>
 
@@ -139,12 +130,11 @@ function CollectionCard({
             <Users className="size-3 text-muted-foreground" />
             <div className="flex -space-x-1.5">
               {collection.members.slice(0, 3).map((member) => (
-                <Avatar
-                  key={member.id}
-                  className="size-5 border-2 border-card"
-                >
+                <Avatar key={member.id} className="size-5 border-2 border-card">
                   <AvatarFallback className="text-[8px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                    {getInitials(member.user_full_name || member.user_email || "?")}
+                    {getInitials(
+                      member.user_full_name || member.user_email || "?",
+                    )}
                   </AvatarFallback>
                 </Avatar>
               ))}
