@@ -5,6 +5,7 @@ import httpx
 from app.media.models import MediaType
 from app.media.providers.base import MediaProvider
 from app.media.schemas import (
+    CastMember,
     MediaDetails,
     MediaSearchResponse,
     MediaSearchResult,
@@ -76,10 +77,37 @@ class TMDBProvider:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self._base_url}{path}/{external_id}",
+                params={"append_to_response": "credits"},
                 headers=self._headers(),
             )
             response.raise_for_status()
             data = response.json()
+
+        # Parse credits
+        credits = data.get("credits", {})
+
+        # Director: from crew for movies, created_by fallback for TV
+        director: str | None = None
+        for crew_member in credits.get("crew", []):
+            if crew_member.get("job") == "Director":
+                director = crew_member.get("name")
+                break
+        if not director and media_type == MediaType.series:
+            created_by = data.get("created_by", [])
+            if created_by:
+                director = created_by[0].get("name")
+
+        # Cast: first 10 members
+        cast_data = credits.get("cast", [])[:10]
+        cast = [
+            CastMember(
+                id=c["id"],
+                name=c.get("name", ""),
+                character=c.get("character"),
+                profile_path=c.get("profile_path"),
+            )
+            for c in cast_data
+        ]
 
         return MediaDetails(
             external_id=data["id"],
@@ -93,8 +121,9 @@ class TMDBProvider:
             ),
             rating=data.get("vote_average"),
             genres=[g["name"] for g in data.get("genres", [])],
+            director=director,
+            cast=cast,
         )
-
 
     async def trending(
         self, media_type: MediaType, time_window: str = "week"

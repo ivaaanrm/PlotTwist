@@ -40,6 +40,27 @@ export type MovieSearchResponse = {
   total_results: number
 }
 
+export type CastMember = {
+  id: number
+  name: string
+  character?: string | null
+  profile_path?: string | null
+}
+
+export type MediaDetails = {
+  external_id: number
+  media_type: MediaType
+  title: string
+  overview?: string | null
+  poster_path?: string | null
+  backdrop_path?: string | null
+  release_date?: string | null
+  rating?: number | null
+  genres: string[]
+  director?: string | null
+  cast: CastMember[]
+}
+
 export type WatchlistItemPublic = {
   id: string
   user_id: string
@@ -283,6 +304,26 @@ export const MovieDomainService = {
       url: "/api/v1/movies/{tmdb_id}",
       path: {
         tmdb_id: data.tmdbId,
+      },
+      errors: {
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  getMovieDetails(data: {
+    tmdbId: number
+    media_type?: MediaType
+  }): CancelablePromise<MediaDetails> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/movies/{tmdb_id}/details",
+      path: {
+        tmdb_id: data.tmdbId,
+      },
+      query: {
+        media_type: data.media_type ?? "movie",
       },
       errors: {
         404: "Not Found",

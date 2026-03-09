@@ -20,7 +20,7 @@ import {
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { formatDate, formatRating } from "@/lib/media"
+import { formatDate, formatRating, formatTmdbRating } from "@/lib/media"
 import { getInitials, handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/profile")({
@@ -73,59 +73,67 @@ function WatchedMovieItem({
   isRemoving: boolean
 }) {
   const movie = item.movie
-  const rating = formatRating(item.rating)
+  const userRating = formatRating(item.rating)
+  const tmdbRating = formatTmdbRating(movie?.tmdb_rating)
   const date = formatDate(item.watched_at)
 
   return (
-    <article className="flex rounded-xl border bg-card overflow-hidden h-24 transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20">
-      <div className="w-16 shrink-0 bg-muted/30">
+    <article className="group flex rounded-xl border bg-card overflow-hidden h-[88px] transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20">
+      {/* Poster */}
+      <div className="w-[62px] shrink-0 bg-muted/30">
         <MoviePoster posterPath={movie?.poster_path} title={movie?.title ?? "Movie"} />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col justify-between p-2.5">
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-sm leading-snug line-clamp-1">
-              {movie?.title ?? "Untitled"}
-            </h3>
-            <div className="flex items-center gap-1 shrink-0">
-              {rating && (
-                <div className="flex items-center gap-0.5">
-                  <Star className="size-3 fill-amber-500 text-amber-500 dark:fill-amber-400 dark:text-amber-400" />
-                  <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-                    {rating}
-                  </span>
-                </div>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-6 shrink-0">
-                    <EllipsisVertical className="size-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    disabled={isRemoving}
-                    onClick={() => onRemove(item.id)}
-                  >
-                    Remove
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          {movie?.overview && (
-            <p className="text-[11px] text-muted-foreground line-clamp-1 leading-relaxed mt-0.5">
-              {movie.overview}
-            </p>
-          )}
-        </div>
+      {/* Info — middle section */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5">
+        <h3 className="font-semibold text-sm leading-snug line-clamp-1">
+          {movie?.title ?? "Untitled"}
+        </h3>
         {date && (
-          <span className="text-[10px] text-muted-foreground/70 mt-auto">
+          <span className="text-[10px] text-muted-foreground/60 leading-none">
             Watched {date}
           </span>
         )}
+      </div>
+
+      {/* Ratings — right side */}
+      <div className="flex items-center gap-3 pr-1.5 shrink-0">
+        {userRating && (
+          <div className="flex flex-col items-center gap-0.5">
+            <Star className="size-4 fill-amber-500 text-amber-500 dark:fill-amber-400 dark:text-amber-400" />
+            <span className="text-base font-bold text-amber-600 dark:text-amber-400 leading-none">
+              {userRating}
+            </span>
+            <span className="text-[9px] text-muted-foreground/70 uppercase tracking-wide">You</span>
+          </div>
+        )}
+        {tmdbRating && (
+          <div className="flex flex-col items-center gap-0.5">
+            <Star className="size-4 text-muted-foreground/50" />
+            <span className="text-base font-semibold text-muted-foreground leading-none">
+              {tmdbRating}
+            </span>
+            <span className="text-[9px] text-muted-foreground/50 uppercase tracking-wide">TMDB</span>
+          </div>
+        )}
+
+        {/* Kebab menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-7 shrink-0">
+              <EllipsisVertical className="size-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              disabled={isRemoving}
+              onClick={() => onRemove(item.id)}
+            >
+              Remove
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </article>
   )
@@ -141,48 +149,57 @@ function WatchlistMovieItem({
   isRemoving: boolean
 }) {
   const movie = item.movie
+  const tmdbRating = formatTmdbRating(movie?.tmdb_rating)
   const date = formatDate(item.added_at)
 
   return (
-    <article className="flex rounded-xl border bg-card overflow-hidden h-24 transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20">
-      <div className="w-16 shrink-0 bg-muted/30">
+    <article className="group flex rounded-xl border bg-card overflow-hidden h-[88px] transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20">
+      {/* Poster */}
+      <div className="w-[62px] shrink-0 bg-muted/30">
         <MoviePoster posterPath={movie?.poster_path} title={movie?.title ?? "Movie"} />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col justify-between p-2.5">
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-sm leading-snug line-clamp-1">
-              {movie?.title ?? "Untitled"}
-            </h3>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-6 shrink-0">
-                  <EllipsisVertical className="size-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  disabled={isRemoving}
-                  onClick={() => onRemove(item.id)}
-                >
-                  Remove
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          {movie?.overview && (
-            <p className="text-[11px] text-muted-foreground line-clamp-1 leading-relaxed mt-0.5">
-              {movie.overview}
-            </p>
-          )}
-        </div>
+      {/* Info — middle section */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5">
+        <h3 className="font-semibold text-sm leading-snug line-clamp-1">
+          {movie?.title ?? "Untitled"}
+        </h3>
         {date && (
-          <span className="text-[10px] text-muted-foreground/70 mt-auto">
+          <span className="text-[10px] text-muted-foreground/60 leading-none">
             Added {date}
           </span>
         )}
+      </div>
+
+      {/* Ratings — right side */}
+      <div className="flex items-center gap-3 pr-1.5 shrink-0">
+        {tmdbRating && (
+          <div className="flex flex-col items-center gap-0.5">
+            <Star className="size-4 text-muted-foreground/50" />
+            <span className="text-base font-semibold text-muted-foreground leading-none">
+              {tmdbRating}
+            </span>
+            <span className="text-[9px] text-muted-foreground/50 uppercase tracking-wide">TMDB</span>
+          </div>
+        )}
+
+        {/* Kebab menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-7 shrink-0">
+              <EllipsisVertical className="size-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              disabled={isRemoving}
+              onClick={() => onRemove(item.id)}
+            >
+              Remove
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </article>
   )

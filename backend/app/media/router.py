@@ -6,7 +6,7 @@ from app.auth.dependencies import CurrentUser, SessionDep
 from app.media import service as media_service
 from app.media.dependencies import MediaProviderDep
 from app.media.exceptions import EmptyQueryError
-from app.media.schemas import MediaPublic, MediaSearchResponse, MediaType
+from app.media.schemas import MediaDetails, MediaPublic, MediaSearchResponse, MediaType
 
 router = APIRouter(prefix="/movies", tags=["movies"])
 
@@ -40,6 +40,21 @@ async def trending_movies(
     """Get trending media from external provider."""
     return await media_service.get_trending_media(
         provider=provider,
+        media_type=media_type,
+    )
+
+
+@router.get("/{tmdb_id}/details", response_model=MediaDetails)
+async def get_movie_details(
+    tmdb_id: int,
+    _current_user: CurrentUser,
+    provider: MediaProviderDep,
+    media_type: MediaType = MediaType.movie,
+) -> Any:
+    """Get full media details with credits from provider (no DB caching)."""
+    return await media_service.get_media_details(
+        provider=provider,
+        tmdb_id=tmdb_id,
         media_type=media_type,
     )
 

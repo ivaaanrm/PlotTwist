@@ -87,3 +87,16 @@ async def get_and_cache_media(
         media_type=media_type,
     )
     return get_or_create_media(session=session, details=details)
+
+
+async def get_media_details(
+    *,
+    provider: MediaProvider,
+    tmdb_id: int,
+    media_type: MediaType,
+) -> MediaDetails:
+    """Get full media details (with credits) from provider. No DB caching."""
+    return await provider.get_details(
+        external_id=tmdb_id,
+        media_type=media_type,
+    )

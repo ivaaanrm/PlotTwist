@@ -19,6 +19,13 @@ class MediaSearchResult(BaseModel):
     genres: list[str] = []
 
 
+class CastMember(BaseModel):
+    id: int
+    name: str
+    character: str | None = None
+    profile_path: str | None = None
+
+
 class MediaDetails(BaseModel):
     external_id: int
     media_type: MediaType
@@ -29,6 +36,8 @@ class MediaDetails(BaseModel):
     release_date: date | None = None
     rating: float | None = None
     genres: list[str] = []
+    director: str | None = None
+    cast: list[CastMember] = []
 
 
 class MediaSearchResponse(BaseModel):
@@ -58,6 +67,7 @@ class MediaPublic(MediaBase):
 MoviePublic = MediaPublic
 
 __all__ = [
+    "CastMember",
     "MediaPublic",
     "MediaSearchResponse",
     "MediaType",

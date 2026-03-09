@@ -1,4 +1,5 @@
 export const POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"
+export const PROFILE_BASE_URL = "https://image.tmdb.org/t/p/w185"
 
 export function getPosterUrl(posterPath?: string | null): string | null {
   if (!posterPath) {
@@ -7,11 +8,25 @@ export function getPosterUrl(posterPath?: string | null): string | null {
   return `${POSTER_BASE_URL}${posterPath}`
 }
 
+export function getProfileUrl(profilePath?: string | null): string | null {
+  if (!profilePath) {
+    return null
+  }
+  return `${PROFILE_BASE_URL}${profilePath}`
+}
+
 export function formatRating(value?: number | null): string | null {
   if (typeof value !== "number") {
     return null
   }
   return value.toFixed(1)
+}
+
+export function formatTmdbRating(value?: number | null): string | null {
+  if (typeof value !== "number") {
+    return null
+  }
+  return (value / 2).toFixed(1)
 }
 
 export function formatDate(value?: string | null): string {
