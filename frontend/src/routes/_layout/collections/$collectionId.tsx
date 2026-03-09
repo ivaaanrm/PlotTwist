@@ -21,6 +21,7 @@ import {
   GripVertical,
   Layers,
   Search,
+  Star,
   Trash2,
   UserPlus,
   Users,
@@ -28,6 +29,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
+import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -51,6 +53,7 @@ import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDebounce } from "@/hooks/useDebounce"
 import { getInitials, handleError } from "@/utils"
+import { formatTmdbRating } from "@/lib/media"
 
 export const Route = createFileRoute("/_layout/collections/$collectionId")({
   component: CollectionDetail,
@@ -65,10 +68,12 @@ function SortablePosterItem({
   item,
   onRemove,
   isRemoving,
+  onSelect,
 }: {
   item: CollectionItemPublicNamed
   onRemove: (itemId: string) => void
   isRemoving: boolean
+  onSelect: (item: CollectionItemPublicNamed) => void
 }) {
   const {
     attributes,
@@ -86,13 +91,24 @@ function SortablePosterItem({
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const tmdbRating = formatTmdbRating(item.media?.tmdb_rating)
+
   return (
     <div ref={setNodeRef} style={style} className="relative group">
-      <div className="aspect-[2/3] rounded-lg overflow-hidden border bg-muted/30">
+      <div
+        className="relative aspect-[2/3] rounded-lg overflow-hidden border bg-muted/30 cursor-pointer"
+        onClick={() => onSelect(item)}
+      >
         <MoviePoster
           posterPath={item.media?.poster_path}
           title={item.media?.title ?? ""}
         />
+        {tmdbRating && (
+          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-[10px] font-medium flex items-center gap-1 shadow-sm z-10 pointer-events-none text-amber-500">
+            <Star className="size-2.5 fill-amber-500 text-amber-500" />
+            <span className="text-white">{tmdbRating}</span>
+          </div>
+        )}
       </div>
 
       {/* Drag handle */}
@@ -327,6 +343,7 @@ function CollectionDetail() {
 
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
+  const [selectedItem, setSelectedItem] = useState<CollectionItemPublicNamed | null>(null)
 
   const collectionQuery = useQuery({
     queryKey: ["collections", collectionId],
@@ -508,6 +525,7 @@ function CollectionDetail() {
                   isRemoving={
                     removingItemId === item.id && removeMutation.isPending
                   }
+                  onSelect={setSelectedItem}
                 />
               ))}
             </div>
@@ -525,6 +543,15 @@ function CollectionDetail() {
           isOwner={isOwner}
         />
       )}
+
+      {/* Media Detail dialog */}
+      <MediaDetailDialog
+        open={!!selectedItem}
+        onOpenChange={(open) => {
+          if (!open) setSelectedItem(null)
+        }}
+        item={selectedItem ? ({ collection_item: selectedItem } as any) : null}
+      />
     </div>
   )
 }

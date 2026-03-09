@@ -243,8 +243,8 @@ function CreateCollectionDialog({
 
 function CollectionsSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {Array.from({ length: 3 }).map((_, i) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="rounded-xl border bg-card overflow-hidden">
           <Skeleton className="aspect-[4/3]" />
           <div className="p-3 space-y-2">
@@ -341,7 +341,7 @@ function Collections() {
       )}
 
       {!collectionsQuery.isLoading && collections.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
           {collections.map((collection) => (
             <CollectionCard
               key={collection.id}
