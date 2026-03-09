@@ -45,8 +45,7 @@ function FeedCard({
   const watchedDate = formatRelativeTime(ci.created_at)
 
   return (
-    <article
-      id={`feed-item-${ci.id}`}
+    <div
       role="button"
       tabIndex={0}
       onClick={onClick}
@@ -56,76 +55,85 @@ function FeedCard({
           onClick()
         }
       }}
-      className="ticket-card group flex bg-[#1e1e24] dark:bg-[#1e1e24] text-white overflow-hidden h-[100px] transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 hover:brightness-110 active:scale-[0.98] active:brightness-95 cursor-pointer select-none relative"
+      className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] drop-shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_6px_16px_rgba(0,0,0,0.12)] dark:hover:drop-shadow-[0_6px_16px_rgba(0,0,0,0.6)]"
+      id={`feed-item-${ci.id}`}
     >
-      {/* Poster */}
-      <div className="w-[68px] shrink-0 p-1.5 pl-3">
-        <div className="h-full rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105">
-          <MoviePoster
-            posterPath={media?.poster_path}
-            title={media?.title ?? "Movie"}
-          />
-        </div>
-      </div>
-
-      {/* Main ticket body — middle */}
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-3 py-2.5">
-        <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 text-white group-hover:text-amber-400 transition-colors">
-          {media?.title ?? "Untitled"}
-        </h3>
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Avatar className="size-4 shrink-0">
-            <AvatarFallback className="text-[7px] font-semibold bg-gradient-to-br from-amber-500 to-amber-600 text-white">
-              {getInitials(displayName)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-[11px] text-gray-400 truncate">
-            {displayName}
-          </span>
-        </div>
-        {watchedDate && (
-          <span className="text-[10px] text-gray-500 pl-[22px]">
-            {watchedDate}
-          </span>
-        )}
-      </div>
-
-      {/* Dashed divider — tear-off line */}
-      <div className="w-px self-stretch my-2 border-l border-dashed border-gray-600/50" />
-
-      {/* Ticket stub — ratings */}
-      <div className="flex items-center gap-2.5 px-3 shrink-0">
-        {userRating && (
-          <div className="flex flex-col items-center gap-0.5">
-            <Star className="size-4 fill-amber-400 text-amber-400" />
-            <span className="text-[15px] font-bold text-amber-400 leading-none">
-              {userRating}
-            </span>
-            <span className="text-[8px] text-gray-600 uppercase tracking-widest font-medium">YOU</span>
-          </div>
-        )}
-        {tmdbRating && (
-          <div className="flex flex-col items-center gap-0.5">
-            <Star className="size-4 text-gray-500" strokeWidth={1.5} />
-            <span className="text-[15px] font-semibold text-gray-300 leading-none">
-              {tmdbRating}
-            </span>
-            <span className="text-[8px] text-gray-600 uppercase tracking-widest font-medium">TMDB</span>
-          </div>
-        )}
-
-        {/* Decorative barcode */}
-        <div className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5" aria-hidden="true">
-          {[3, 1.5, 3, 1, 2, 1.5, 3, 1, 2, 3, 1.5, 1].map((w, i) => (
-            <div
-              key={i}
-              className="bg-gray-400 rounded-full"
-              style={{ width: `${w}px`, height: "18px" }}
+      {/* Main card */}
+      <article
+        className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px]"
+        style={{
+          boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.06)',
+        }}
+      >
+        {/* Poster */}
+        <div className="w-[68px] shrink-0 p-1.5 pl-3 relative z-10">
+          <div className="h-full rounded-md overflow-hidden bg-muted">
+            <MoviePoster
+              posterPath={media?.poster_path}
+              title={media?.title ?? "Movie"}
             />
-          ))}
+          </div>
         </div>
-      </div>
-    </article>
+
+        {/* Main ticket body — middle */}
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-3 py-2.5 relative z-10">
+          <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+            {media?.title ?? "Untitled"}
+          </h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Avatar className="size-4 shrink-0">
+              <AvatarFallback className="text-[7px] font-semibold bg-primary text-primary-foreground">
+                {getInitials(displayName)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-[11px] text-muted-foreground truncate">
+              {displayName}
+            </span>
+          </div>
+          {watchedDate && (
+            <span className="text-[10px] text-muted-foreground/70 pl-[22px]">
+              {watchedDate}
+            </span>
+          )}
+        </div>
+
+        {/* Dashed divider — tear-off line */}
+        <div className="w-px self-stretch my-2 border-l border-dashed border-border/60 relative z-10" />
+
+        {/* Ticket stub — ratings */}
+        <div className="flex items-center gap-2.5 px-3 shrink-0 relative z-10">
+          {userRating && (
+            <div className="flex flex-col items-center gap-0.5">
+              <Star className="size-4 fill-amber-400 text-amber-400" />
+              <span className="text-[15px] font-bold text-amber-400 leading-none">
+                {userRating}
+              </span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">YOU</span>
+            </div>
+          )}
+          {tmdbRating && (
+            <div className="flex flex-col items-center gap-0.5">
+              <Star className="size-4 text-muted-foreground" strokeWidth={1.5} />
+              <span className="text-[15px] font-semibold text-card-foreground leading-none">
+                {tmdbRating}
+              </span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">TMDB</span>
+            </div>
+          )}
+
+          {/* Decorative barcode */}
+          <div className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5" aria-hidden="true">
+            {[3, 1.5, 3, 1, 2, 1.5, 3, 1, 2, 3, 1.5, 1].map((w, i) => (
+              <div
+                key={i}
+                className="bg-current rounded-full"
+                style={{ width: `${w}px`, height: "18px" }}
+              />
+            ))}
+          </div>
+        </div>
+      </article>
+    </div>
   )
 }
 
@@ -135,29 +143,30 @@ function FeedSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="ticket-card flex bg-[#1e1e24] overflow-hidden h-[100px]"
+          className="ticket-card flex bg-card dark:bg-[#25252d] overflow-hidden h-[100px]"
+          style={{ boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.06)' }}
         >
           <div className="w-[68px] shrink-0 p-1.5 pl-3">
-            <Skeleton className="h-full rounded-md bg-gray-700/50" />
+            <Skeleton className="h-full rounded-md bg-muted" />
           </div>
           <div className="flex-1 px-3 py-2.5 flex flex-col justify-center gap-1.5">
-            <Skeleton className="h-4 w-3/5 bg-gray-700/50" />
+            <Skeleton className="h-4 w-3/5 bg-muted" />
             <div className="flex items-center gap-1.5">
-              <Skeleton className="size-4 rounded-full bg-gray-700/50" />
-              <Skeleton className="h-3 w-20 bg-gray-700/50" />
+              <Skeleton className="size-4 rounded-full bg-muted" />
+              <Skeleton className="h-3 w-20 bg-muted" />
             </div>
           </div>
-          <div className="w-px self-stretch my-2 border-l border-dashed border-gray-600/30" />
+          <div className="w-px self-stretch my-2 border-l border-dashed border-border/30" />
           <div className="flex items-center gap-3 px-3">
             <div className="flex flex-col items-center gap-1">
-              <Skeleton className="size-4 rounded-full bg-gray-700/50" />
-              <Skeleton className="h-4 w-7 bg-gray-700/50" />
-              <Skeleton className="h-2 w-8 bg-gray-700/50" />
+              <Skeleton className="size-4 rounded-full bg-muted" />
+              <Skeleton className="h-4 w-7 bg-muted" />
+              <Skeleton className="h-2 w-8 bg-muted" />
             </div>
             <div className="flex flex-col items-center gap-1">
-              <Skeleton className="size-4 rounded-full bg-gray-700/50" />
-              <Skeleton className="h-4 w-7 bg-gray-700/50" />
-              <Skeleton className="h-2 w-8 bg-gray-700/50" />
+              <Skeleton className="size-4 rounded-full bg-muted" />
+              <Skeleton className="h-4 w-7 bg-muted" />
+              <Skeleton className="h-2 w-8 bg-muted" />
             </div>
           </div>
         </div>
