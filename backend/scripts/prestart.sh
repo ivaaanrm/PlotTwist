@@ -6,5 +6,8 @@ set -x
 # Let the DB start (wait for Postgres to be ready)
 python scripts/backend_pre_start.py
 
+# Apply pending Alembic migrations
+alembic upgrade head
+
 # Initialize database schema and seed initial data
 python scripts/initial_data.py

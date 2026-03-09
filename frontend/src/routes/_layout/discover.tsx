@@ -5,6 +5,7 @@ import {
   Check,
   Clock,
   Film,
+  FolderPlus,
   Loader2,
   Monitor,
   Plus,
@@ -24,11 +25,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   MovieDomainService,
+  type CollectionPublic,
   type MediaType,
   type MovieSearchResult,
 } from "@/features/movie-domain/api"
@@ -56,6 +64,8 @@ type DiscoverCardProps = {
   isMarkingWatched: boolean
   onAddToWatchlist: (tmdbId: number) => void
   onMarkAsWatched: (tmdbId: number, rating: number | null) => void
+  collections: CollectionPublic[]
+  onAddToCollection: (collectionId: string, tmdbId: number) => void
 }
 
 function DiscoverCard({
@@ -66,6 +76,8 @@ function DiscoverCard({
   isMarkingWatched,
   onAddToWatchlist,
   onMarkAsWatched,
+  collections,
+  onAddToCollection,
 }: DiscoverCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
@@ -155,6 +167,33 @@ function DiscoverCard({
                 </>
               )}
             </Button>
+
+            {collections.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full text-[11px] h-7 px-2"
+                    title="Add to collection"
+                  >
+                    <FolderPlus className="size-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {collections.map((col) => (
+                    <DropdownMenuItem
+                      key={col.id}
+                      onClick={() =>
+                        onAddToCollection(col.id, movie.external_id)
+                      }
+                    >
+                      {col.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </article>
@@ -274,6 +313,11 @@ function Discover() {
     queryFn: () => MovieDomainService.listWatched({ skip: 0, limit: 200 }),
   })
 
+  const collectionsQuery = useQuery({
+    queryKey: ["collections"],
+    queryFn: () => MovieDomainService.listNamedCollections(),
+  })
+
   const watchlistByTmdbId = useMemo(() => {
     const result = new Map<number, string>()
     for (const item of watchlistQuery.data?.data ?? []) {
@@ -342,6 +386,26 @@ function Discover() {
     setWatchedActionTmdbId(tmdbId)
     markAsWatchedMutation.mutate({ tmdbId, rating })
   }
+
+  const addToCollectionMutation = useMutation({
+    mutationFn: (payload: { collectionId: string; tmdbId: number }) =>
+      MovieDomainService.addToNamedCollection({
+        collectionId: payload.collectionId,
+        tmdb_id: payload.tmdbId,
+        media_type: mediaType,
+      }),
+    onSuccess: () => showSuccessToast("Added to collection"),
+    onError: handleError.bind(showErrorToast),
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["collections"] })
+    },
+  })
+
+  const handleAddToCollection = (collectionId: string, tmdbId: number) => {
+    addToCollectionMutation.mutate({ collectionId, tmdbId })
+  }
+
+  const userCollections = collectionsQuery.data?.data ?? []
 
   const isSearchLoading = searchQuery.isLoading || searchQuery.isFetching
   const isFetching = hasSearchQuery ? searchQuery.isFetching : false
@@ -459,6 +523,8 @@ function Discover() {
                   }
                   onAddToWatchlist={handleAddToWatchlist}
                   onMarkAsWatched={handleMarkAsWatched}
+                  collections={userCollections}
+                  onAddToCollection={handleAddToCollection}
                 />
               )
             })}

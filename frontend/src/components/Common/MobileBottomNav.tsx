@@ -2,11 +2,12 @@ import {
     Link as RouterLink,
     useRouterState,
 } from "@tanstack/react-router"
-import { CircleUser, Home, Search, UserRoundPlus } from "lucide-react"
+import { CircleUser, Home, Layers, Search, UserRoundPlus } from "lucide-react"
 
 const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Search, label: "Discover", path: "/discover" },
+    { icon: Layers, label: "Collections", path: "/collections" },
     { icon: UserRoundPlus, label: "Social", path: "/social" },
     { icon: CircleUser, label: "Profile", path: "/profile" },
 ]
