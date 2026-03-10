@@ -4,7 +4,7 @@ import { EllipsisVertical, Layers, Plus, Trash2, Users } from "lucide-react"
 import { useState } from "react"
 
 import { MoviePoster } from "@/components/Common/MoviePoster"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -31,7 +31,7 @@ import {
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { getInitials, handleError } from "@/utils"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/collections/")({
   component: Collections,
@@ -130,13 +130,12 @@ function CollectionCard({
             <Users className="size-3 text-muted-foreground" />
             <div className="flex -space-x-1.5">
               {collection.members.slice(0, 3).map((member) => (
-                <Avatar key={member.id} className="size-5 border-2 border-card">
-                  <AvatarFallback className="text-[8px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                    {getInitials(
-                      member.user_full_name || member.user_email || "?",
-                    )}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  key={member.id}
+                  displayName={member.user_full_name || member.user_email || "?"}
+                  className="size-5 border-2 border-card"
+                  iconSizeClass="size-2.5"
+                />
               ))}
               {collection.members.length > 3 && (
                 <span className="text-[10px] text-muted-foreground ml-1.5">

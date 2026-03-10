@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Check, Search, UserPlus } from "lucide-react"
 import { useState } from "react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
@@ -14,7 +14,7 @@ import {
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDebounce } from "@/hooks/useDebounce"
-import { getInitials, handleError } from "@/utils"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/social")({
   component: Social,
@@ -44,11 +44,12 @@ function UserCard({
 
   return (
     <article className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20">
-      <Avatar className="size-9 shrink-0">
-        <AvatarFallback className="text-xs font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-          {getInitials(displayName)}
-        </AvatarFallback>
-      </Avatar>
+      <UserAvatar
+        avatarId={user.avatar}
+        displayName={displayName}
+        className="size-9 shrink-0"
+        iconSizeClass="size-4"
+      />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold truncate">{displayName}</p>
         <p className="text-[11px] text-muted-foreground truncate">

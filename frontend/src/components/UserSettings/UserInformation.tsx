@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { UsersService, type UserUpdateMe } from "@/client"
+import { AvatarPickerDialog } from "@/components/Common/AvatarPickerDialog"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -32,6 +34,7 @@ const UserInformation = () => {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const [editMode, setEditMode] = useState(false)
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false)
   const { user: currentUser } = useAuth()
 
   const form = useForm<FormData>({
@@ -80,9 +83,41 @@ const UserInformation = () => {
     toggleEditMode()
   }
 
+  const profileName = currentUser?.full_name || currentUser?.email || "User"
+
   return (
     <div className="max-w-md">
       <h3 className="text-lg font-semibold py-4">User Information</h3>
+
+      <div className="mb-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setAvatarPickerOpen(true)}
+          className="group relative rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label="Change avatar"
+        >
+          <UserAvatar
+            avatarId={currentUser?.avatar}
+            displayName={profileName}
+            className="size-16"
+            iconSizeClass="size-7"
+          />
+          <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity text-white text-[10px] font-medium">
+            Edit
+          </span>
+        </button>
+        <div>
+          <p className="text-sm font-medium">{profileName}</p>
+          <p className="text-xs text-muted-foreground">Click to change avatar</p>
+        </div>
+      </div>
+
+      <AvatarPickerDialog
+        open={avatarPickerOpen}
+        onOpenChange={setAvatarPickerOpen}
+        currentAvatarId={currentUser?.avatar}
+      />
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

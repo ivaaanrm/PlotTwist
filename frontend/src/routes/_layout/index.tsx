@@ -6,7 +6,7 @@ import { useMemo, useState } from "react"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { SwipeableFeedCard } from "@/components/Common/SwipeableFeedCard"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -16,7 +16,7 @@ import {
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formatRating, formatRelativeTime, formatTmdbRating } from "@/lib/media"
-import { getInitials, handleError } from "@/utils"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/")({
   component: Home,
@@ -77,11 +77,13 @@ function FeedCard({
             {media?.title ?? "Untitled"}
           </h3>
           <div className="flex items-center gap-1.5 min-w-0">
-            <Avatar className="size-4 shrink-0">
-              <AvatarFallback className="text-[7px] font-semibold bg-primary text-primary-foreground">
-                {getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              avatarId={user.avatar}
+              displayName={displayName}
+              className="size-4 shrink-0"
+              iconSizeClass="size-2.5"
+              fallbackClassName="text-[7px] font-semibold bg-primary text-primary-foreground"
+            />
             <span className="text-[11px] text-muted-foreground truncate">
               {displayName}
             </span>

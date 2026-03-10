@@ -31,7 +31,7 @@ import { useState } from "react"
 
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -52,7 +52,7 @@ import {
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDebounce } from "@/hooks/useDebounce"
-import { getInitials, handleError } from "@/utils"
+import { handleError } from "@/utils"
 import { formatTmdbRating } from "@/lib/media"
 
 export const Route = createFileRoute("/_layout/collections/$collectionId")({
@@ -225,13 +225,11 @@ function InviteDialog({
                   key={member.id}
                   className="flex items-center gap-3 rounded-lg border px-3 py-2"
                 >
-                  <Avatar className="size-7">
-                    <AvatarFallback className="text-[9px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                      {getInitials(
-                        member.user_full_name || member.user_email || "?",
-                      )}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    displayName={member.user_full_name || member.user_email || "?"}
+                    className="size-7"
+                    iconSizeClass="size-3"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
                       {member.user_full_name || member.user_email}
@@ -282,11 +280,12 @@ function InviteDialog({
                         key={user.id}
                         className="flex items-center gap-3 rounded-lg border px-3 py-2"
                       >
-                        <Avatar className="size-7">
-                          <AvatarFallback className="text-[9px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                            {getInitials(user.full_name || user.username)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <UserAvatar
+                          avatarId={user.avatar}
+                          displayName={user.full_name || user.username}
+                          className="size-7"
+                          iconSizeClass="size-3"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
                             {user.full_name || user.username}
@@ -464,16 +463,12 @@ function CollectionDetail() {
           <Users className="size-3.5 text-muted-foreground" />
           <div className="flex -space-x-1.5">
             {collection.members.slice(0, 5).map((member) => (
-              <Avatar
+              <UserAvatar
                 key={member.id}
+                displayName={member.user_full_name || member.user_email || "?"}
                 className="size-6 border-2 border-background"
-              >
-                <AvatarFallback className="text-[9px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                  {getInitials(
-                    member.user_full_name || member.user_email || "?",
-                  )}
-                </AvatarFallback>
-              </Avatar>
+                iconSizeClass="size-2.5"
+              />
             ))}
           </div>
           <span className="text-[11px] text-muted-foreground">

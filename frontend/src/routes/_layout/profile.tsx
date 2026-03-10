@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Film, LogOut, Settings, Star } from "lucide-react"
+import { Camera, Film, LogOut, Settings, Star } from "lucide-react"
 import { useMemo, useState } from "react"
+import { AvatarPickerDialog } from "@/components/Common/AvatarPickerDialog"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { SwipeableDeleteCard } from "@/components/Common/SwipeableDeleteCard"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -35,7 +36,7 @@ import {
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formatDate, formatRating, formatTmdbRating } from "@/lib/media"
-import { getInitials, handleError } from "@/utils"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/profile")({
   component: Profile,
@@ -312,11 +313,12 @@ function FollowUserRow({
       onClick={onNavigate}
       className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/60 transition-colors"
     >
-      <Avatar className="size-10 shrink-0">
-        <AvatarFallback className="text-sm font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-          {getInitials(displayName)}
-        </AvatarFallback>
-      </Avatar>
+      <UserAvatar
+        avatarId={item.user.avatar}
+        displayName={displayName}
+        className="size-10 shrink-0"
+        iconSizeClass="size-4"
+      />
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{displayName}</p>
         <p className="text-xs text-muted-foreground truncate">@{item.user.username}</p>
@@ -336,6 +338,7 @@ function Profile() {
   const [selectedItem, setSelectedItem] = useState<FeedItemPublic | null>(null)
   const [followersOpen, setFollowersOpen] = useState(false)
   const [followingOpen, setFollowingOpen] = useState(false)
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false)
 
   const profileQuery = useQuery({
     queryKey: ["profile", currentUser?.id],
@@ -467,11 +470,12 @@ function Profile() {
             </SheetHeader>
             <div className="px-4 space-y-4">
               <div className="flex items-center gap-3">
-                <Avatar className="size-12 shrink-0">
-                  <AvatarFallback className="text-base font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                    {getInitials(profileName)}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  avatarId={currentUser?.avatar}
+                  displayName={profileName}
+                  className="size-12 shrink-0"
+                  iconSizeClass="size-5"
+                />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold truncate">
                     {profileName}
@@ -518,11 +522,22 @@ function Profile() {
 
         {/* Avatar + name row — avatar overlaps banner */}
         <div className="flex items-end gap-3 -mt-10 px-1">
-          <Avatar className="size-20 shrink-0 ring-4 ring-background shadow-sm">
-            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-              {getInitials(profileName)}
-            </AvatarFallback>
-          </Avatar>
+          <button
+            type="button"
+            onClick={() => setAvatarPickerOpen(true)}
+            className="group relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label="Change avatar"
+          >
+            <UserAvatar
+              avatarId={currentUser?.avatar}
+              displayName={profileName}
+              className="size-20 ring-4 ring-background shadow-sm"
+              iconSizeClass="size-8"
+            />
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera className="size-5 text-white" />
+            </span>
+          </button>
           <div className="mb-1 min-w-0">
             <h2 className="text-base font-bold leading-tight truncate">
               {profileName}
@@ -666,6 +681,13 @@ function Profile() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Avatar Picker */}
+      <AvatarPickerDialog
+        open={avatarPickerOpen}
+        onOpenChange={setAvatarPickerOpen}
+        currentAvatarId={currentUser?.avatar}
+      />
 
       {/* Detail Dialog */}
       <MediaDetailDialog
