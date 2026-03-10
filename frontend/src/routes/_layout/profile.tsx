@@ -115,11 +115,11 @@ function WatchedMovieItem({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5 relative z-10">
-          <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {movie?.title ?? "Untitled"}
           </h3>
           {date && (
-            <span className="text-[10px] text-muted-foreground leading-none">
+            <span className="text-[11px] text-muted-foreground leading-none">
               Watched {date}
             </span>
           )}
@@ -208,11 +208,11 @@ function WatchlistMovieItem({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5 relative z-10">
-          <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {movie?.title ?? "Untitled"}
           </h3>
           {date && (
-            <span className="text-[10px] text-muted-foreground leading-none">
+            <span className="text-[11px] text-muted-foreground leading-none">
               Added {date}
             </span>
           )}

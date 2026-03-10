@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, Navigate } from "@tanstack/react-router"
 import { Film, Lock, Star } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { UserAvatar } from "@/components/ui/user-avatar"
@@ -57,12 +57,17 @@ function UserProfileSkeleton() {
 function ReadonlyWatchedItem({
   item,
   onClick,
+  username,
+  currentUserRating,
 }: {
   item: WatchedMoviePublic
   onClick: () => void
+  username: string
+  currentUserRating?: number
 }) {
   const movie = item.movie
   const userRating = formatRating(item.rating)
+  const myRatingFormatted = formatRating(currentUserRating)
   const tmdbRating = formatTmdbRating(movie?.tmdb_rating)
   const date = formatDate(item.watched_at)
 
@@ -90,11 +95,11 @@ function ReadonlyWatchedItem({
           </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5 relative z-10">
-          <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {movie?.title ?? "Untitled"}
           </h3>
           {date && (
-            <span className="text-[10px] text-muted-foreground leading-none">
+            <span className="text-[11px] text-muted-foreground leading-none">
               Watched {date}
             </span>
           )}
@@ -106,6 +111,17 @@ function ReadonlyWatchedItem({
               <Star className="size-4 fill-amber-400 text-amber-400" />
               <span className="text-[15px] font-bold text-amber-400 leading-none">
                 {userRating}
+              </span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium max-w-[40px] truncate">
+                {username.substring(0, 5)}
+              </span>
+            </div>
+          )}
+          {myRatingFormatted && (
+            <div className="flex flex-col items-center gap-0.5">
+              <Star className="size-4 fill-primary text-primary" />
+              <span className="text-[15px] font-bold text-primary leading-none">
+                {myRatingFormatted}
               </span>
               <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">
                 YOU
@@ -176,11 +192,11 @@ function ReadonlyWatchlistItem({
           </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5 relative z-10">
-          <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {movie?.title ?? "Untitled"}
           </h3>
           {date && (
-            <span className="text-[10px] text-muted-foreground leading-none">
+            <span className="text-[11px] text-muted-foreground leading-none">
               Added {date}
             </span>
           )}
@@ -287,7 +303,7 @@ function UserProfilePage() {
 
   // Redirect to own profile
   if (currentUser && username === currentUser.username) {
-    throw redirect({ to: "/profile" })
+    return <Navigate to="/profile" replace />
   }
 
   const userQuery = useQuery({
@@ -300,6 +316,23 @@ function UserProfilePage() {
     queryFn: () => MovieDomainService.getUserProfileByUsername({ username }),
     retry: false,
   })
+
+  const currentUserWatchedQuery = useQuery({
+    queryKey: ["movies", "watched"],
+    queryFn: () => MovieDomainService.listWatched({ skip: 0, limit: 1000 }),
+    enabled: Boolean(currentUser),
+  })
+
+  const watchedRatings = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const item of currentUserWatchedQuery.data?.data ?? []) {
+      const tmdbId = item.movie?.tmdb_id ?? item.media?.tmdb_id
+      if (typeof tmdbId === "number" && item.rating != null) {
+        map.set(tmdbId, item.rating)
+      }
+    }
+    return map
+  }, [currentUserWatchedQuery.data])
 
   const userId = userQuery.data?.id ?? ""
 
@@ -427,6 +460,10 @@ function UserProfilePage() {
                 <ReadonlyWatchedItem
                   key={item.id}
                   item={item}
+                  username={username}
+                  currentUserRating={
+                    item.movie?.tmdb_id ? watchedRatings.get(item.movie.tmdb_id) : undefined
+                  }
                   onClick={() =>
                     setSelectedItem({
                       id: item.id,

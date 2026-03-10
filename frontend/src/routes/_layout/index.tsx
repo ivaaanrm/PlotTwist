@@ -32,9 +32,13 @@ export const Route = createFileRoute("/_layout/")({
 function FeedCard({
   item,
   onClick,
+  currentUserId,
+  currentUserRating,
 }: {
   item: FeedItemPublic
   onClick: () => void
+  currentUserId?: string
+  currentUserRating?: number
 }) {
   const user = item.user
   const ci = item.collection_item
@@ -43,6 +47,9 @@ function FeedCard({
   const userRating = formatRating(ci.rating)
   const tmdbRating = formatTmdbRating(media?.tmdb_rating)
   const watchedDate = formatRelativeTime(ci.created_at)
+
+  const isMine = currentUserId === user.id
+  const myRatingFormatted = formatRating(currentUserRating)
 
   return (
     <div
@@ -73,7 +80,7 @@ function FeedCard({
 
         {/* Main ticket body — middle */}
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-3 py-2.5 relative z-10">
-          <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {media?.title ?? "Untitled"}
           </h3>
           <div className="flex items-center gap-1.5 min-w-0">
@@ -84,12 +91,27 @@ function FeedCard({
               iconSizeClass="size-2.5"
               fallbackClassName="text-[7px] font-semibold bg-primary text-primary-foreground"
             />
-            <span className="text-[11px] text-muted-foreground truncate">
-              {displayName}
-            </span>
+            {isMine ? (
+              <Link
+                to="/profile"
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs font-medium text-muted-foreground truncate hover:text-primary hover:underline transition-all"
+              >
+                @{user.username}
+              </Link>
+            ) : (
+              <Link
+                to="/users/$username"
+                params={{ username: user.username }}
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs font-medium text-muted-foreground truncate hover:text-primary hover:underline transition-all"
+              >
+                @{user.username}
+              </Link>
+            )}
           </div>
           {watchedDate && (
-            <span className="text-[10px] text-muted-foreground/70 pl-[22px]">
+            <span className="text-[11px] text-muted-foreground/70 pl-[22px]">
               {watchedDate}
             </span>
           )}
@@ -105,6 +127,17 @@ function FeedCard({
               <Star className="size-4 fill-amber-400 text-amber-400" />
               <span className="text-[15px] font-bold text-amber-400 leading-none">
                 {userRating}
+              </span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium max-w-[40px] truncate">
+                {isMine ? "YOU" : user.username.substring(0, 5)}
+              </span>
+            </div>
+          )}
+          {!isMine && myRatingFormatted && (
+            <div className="flex flex-col items-center gap-0.5">
+              <Star className="size-4 fill-primary text-primary" />
+              <span className="text-[15px] font-bold text-primary leading-none">
+                {myRatingFormatted}
               </span>
               <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-medium">
                 YOU
@@ -237,6 +270,23 @@ function Home() {
     return ids
   }, [watchlistQuery.data])
 
+  const watchedQuery = useQuery({
+    queryKey: ["movies", "watched"],
+    queryFn: () => MovieDomainService.listWatched({ skip: 0, limit: 1000 }),
+    enabled: Boolean(currentUser),
+  })
+
+  const watchedRatings = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const item of watchedQuery.data?.data ?? []) {
+      const tmdbId = item.movie?.tmdb_id ?? item.media?.tmdb_id
+      if (typeof tmdbId === "number" && item.rating != null) {
+        map.set(tmdbId, item.rating)
+      }
+    }
+    return map
+  }, [watchedQuery.data])
+
   const addToWatchlistMutation = useMutation({
     mutationFn: (payload: { tmdbId: number; mediaType: string }) =>
       MovieDomainService.addToWatchlist({
@@ -296,7 +346,14 @@ function Home() {
                   if (tmdbId) handleAddToWatchlist(tmdbId, mediaType)
                 }}
               >
-                <FeedCard item={item} onClick={() => setSelectedItem(item)} />
+                <FeedCard
+                  item={item}
+                  onClick={() => setSelectedItem(item)}
+                  currentUserId={currentUser?.id}
+                  currentUserRating={
+                    tmdbId ? watchedRatings.get(tmdbId) : undefined
+                  }
+                />
               </SwipeableFeedCard>
             )
           })}
