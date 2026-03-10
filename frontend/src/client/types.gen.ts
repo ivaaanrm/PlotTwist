@@ -76,6 +76,7 @@ export type UserPublic = {
     username: string;
     full_name?: (string | null);
     created_at?: (string | null);
+    avatar?: (string | null);
 };
 
 export type UserMe = UserPublic & {
@@ -119,6 +120,7 @@ export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
     username?: (string | null);
+    avatar?: (string | null);
 };
 
 export type ValidationError = {

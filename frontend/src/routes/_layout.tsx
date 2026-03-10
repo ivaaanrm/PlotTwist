@@ -6,7 +6,7 @@ import { Logo } from "@/components/Common/Logo"
 import { MobileBottomNav } from "@/components/Common/MobileBottomNav"
 import { NotificationsMenu } from "@/components/Common/NotificationsMenu"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   SidebarInset,
@@ -14,7 +14,6 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
-import { getInitials } from "@/utils"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
@@ -59,15 +58,13 @@ function Layout() {
               asChild
             >
               <Link to="/profile">
-                <Avatar className="size-7">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                    {currentUser
-                      ? getInitials(
-                          currentUser.full_name || currentUser.email || "User",
-                        )
-                      : "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  avatarId={currentUser?.avatar}
+                  displayName={currentUser?.full_name || currentUser?.email || "User"}
+                  className="size-7"
+                  iconSizeClass="size-3"
+                  fallbackClassName="bg-primary/10 text-primary text-xs font-medium"
+                />
               </Link>
             </Button>
           </div>
@@ -84,15 +81,13 @@ function Layout() {
               asChild
             >
               <Link to="/profile">
-                <Avatar className="size-8 group-data-[collapsible=icon]:size-7">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                    {currentUser
-                      ? getInitials(
-                          currentUser.full_name || currentUser.email || "User",
-                        )
-                      : "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  avatarId={currentUser?.avatar}
+                  displayName={currentUser?.full_name || currentUser?.email || "User"}
+                  className="size-8"
+                  iconSizeClass="size-3.5"
+                  fallbackClassName="bg-primary/10 text-primary text-xs font-medium"
+                />
               </Link>
             </Button>
           </div>

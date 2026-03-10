@@ -21,6 +21,7 @@ class User(SQLModel, table=True):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    avatar: str | None = Field(default=None, max_length=50)
     hashed_password: str
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,

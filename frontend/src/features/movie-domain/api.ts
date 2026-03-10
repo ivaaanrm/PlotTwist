@@ -97,6 +97,7 @@ export type UserPublic = {
   username: string
   full_name?: string | null
   created_at?: string | null
+  avatar?: string | null
 }
 
 export type UserMe = UserPublic & {

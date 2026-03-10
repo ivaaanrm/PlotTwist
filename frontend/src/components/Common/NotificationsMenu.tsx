@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Bell, Check, Layers, X } from "lucide-react"
 import { useState } from "react"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ import {
 } from "@/features/movie-domain/api"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { getInitials, handleError } from "@/utils"
+import { handleError } from "@/utils"
 
 function RequestCard({
   displayName,
@@ -34,11 +34,11 @@ function RequestCard({
 }) {
   return (
     <article className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 transition-all duration-200">
-      <Avatar className="size-9 shrink-0">
-        <AvatarFallback className="text-xs font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-          {getInitials(displayName)}
-        </AvatarFallback>
-      </Avatar>
+      <UserAvatar
+        displayName={displayName}
+        className="size-9 shrink-0"
+        iconSizeClass="size-4"
+      />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold truncate">{displayName}</p>
         <p className="text-[11px] text-muted-foreground truncate">{email}</p>

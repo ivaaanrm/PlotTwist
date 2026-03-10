@@ -4,7 +4,7 @@ import { Film, Lock, Star } from "lucide-react"
 import { useState } from "react"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -17,7 +17,7 @@ import {
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formatDate, formatRating, formatTmdbRating } from "@/lib/media"
-import { getInitials, handleError } from "@/utils"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/users/$username")({
   component: UserProfilePage,
@@ -339,11 +339,12 @@ function UserProfilePage() {
       <div className="relative">
         <div className="h-20 rounded-2xl bg-gradient-to-br from-primary/30 via-primary/10 to-muted/30 dark:from-primary/20 dark:via-primary/8 dark:to-muted/20" />
         <div className="flex items-end gap-3 -mt-10 px-1">
-          <Avatar className="size-20 shrink-0 ring-4 ring-background shadow-sm">
-            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-              {getInitials(displayName)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            avatarId={user.avatar}
+            displayName={displayName}
+            className="size-20 shrink-0 ring-4 ring-background shadow-sm"
+            iconSizeClass="size-8"
+          />
           <div className="mb-1 min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">

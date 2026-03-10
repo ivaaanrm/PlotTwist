@@ -44,6 +44,7 @@ class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     username: str | None = Field(default=None, min_length=3, max_length=30)
+    avatar: str | None = Field(default=None, max_length=50)
 
     @field_validator("username")
     @classmethod
@@ -66,6 +67,7 @@ class UserPublic(SQLModel):
     username: str
     full_name: str | None = None
     created_at: datetime | None = None
+    avatar: str | None = None
 
 
 class UserMe(UserPublic):
