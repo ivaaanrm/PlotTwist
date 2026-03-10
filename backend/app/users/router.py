@@ -14,7 +14,6 @@ from app.users import dependencies as users_dependencies
 from app.users import service as users_service
 from app.users.exceptions import (
     IncorrectPasswordError,
-    InsufficientPrivilegesError,
     SamePasswordError,
     SuperUserDeletionError,
     UserEmailExistsError,
@@ -160,10 +159,6 @@ def read_user_by_id(
     current_user: CurrentUser,
 ) -> Any:
     user = users_service.get_user_by_id(session=session, user_id=user_id)
-    if user == current_user:
-        return user
-    if not current_user.is_superuser:
-        raise InsufficientPrivilegesError()
     if user is None:
         raise UserNotFoundError()
     return user

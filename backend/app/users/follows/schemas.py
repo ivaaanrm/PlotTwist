@@ -25,6 +25,15 @@ class FollowsPublic(SQLModel):
     count: int
 
 
+class FollowWithUserPublic(FollowPublic):
+    user: UserPublic
+
+
+class FollowsWithUsersPublic(SQLModel):
+    data: list[FollowWithUserPublic]
+    count: int
+
+
 class FollowRequestPublic(SQLModel):
     follow: FollowPublic
     requester: UserPublic
@@ -46,6 +55,8 @@ __all__ = [
     "FollowsPublic",
     "FollowStatus",
     "FollowUpdate",
+    "FollowWithUserPublic",
+    "FollowsWithUsersPublic",
     "Message",
     "UserPublic",
 ]

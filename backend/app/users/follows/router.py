@@ -23,6 +23,8 @@ from app.users.follows.schemas import (
     FollowsPublic,
     FollowStatus,
     FollowUpdate,
+    FollowWithUserPublic,
+    FollowsWithUsersPublic,
     Message,
     UserPublic,
 )
@@ -134,7 +136,7 @@ def unfollow_or_cancel(
     return Message(message="Unfollowed successfully")
 
 
-@router.get("/followers", response_model=FollowsPublic)
+@router.get("/followers", response_model=FollowsWithUsersPublic)
 def list_followers(
     session: SessionDep,
     current_user: CurrentUser,
@@ -147,10 +149,20 @@ def list_followers(
         skip=skip,
         limit=limit,
     )
-    return FollowsPublic(data=items, count=count)
+    data: list[FollowWithUserPublic] = []
+    for follow in items:
+        user = users_service.get_user_by_id(session=session, user_id=follow.follower_id)
+        if user:
+            data.append(
+                FollowWithUserPublic(
+                    **FollowPublic.model_validate(follow).model_dump(),
+                    user=UserPublic.model_validate(user),
+                )
+            )
+    return FollowsWithUsersPublic(data=data, count=count)
 
 
-@router.get("/following", response_model=FollowsPublic)
+@router.get("/following", response_model=FollowsWithUsersPublic)
 def list_following(
     session: SessionDep,
     current_user: CurrentUser,
@@ -163,4 +175,27 @@ def list_following(
         skip=skip,
         limit=limit,
     )
-    return FollowsPublic(data=items, count=count)
+    data: list[FollowWithUserPublic] = []
+    for follow in items:
+        user = users_service.get_user_by_id(session=session, user_id=follow.following_id)
+        if user:
+            data.append(
+                FollowWithUserPublic(
+                    **FollowPublic.model_validate(follow).model_dump(),
+                    user=UserPublic.model_validate(user),
+                )
+            )
+    return FollowsWithUsersPublic(data=data, count=count)
+
+
+@router.get("/status/{user_id}", response_model=FollowPublic | None)
+def get_follow_status(
+    user_id: uuid.UUID,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Any:
+    return follows_service.get_follow(
+        session=session,
+        follower_id=current_user.id,
+        following_id=user_id,
+    )

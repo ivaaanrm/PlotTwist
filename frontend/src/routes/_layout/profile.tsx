@@ -1,12 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
-import { LogOut, Settings, Star } from "lucide-react"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { Film, LogOut, Settings, Star } from "lucide-react"
 import { useMemo, useState } from "react"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { SwipeableDeleteCard } from "@/components/Common/SwipeableDeleteCard"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import {
   Sheet,
@@ -21,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   type FeedItemPublic,
+  type FollowWithUserPublic,
   MovieDomainService,
   type WatchedMoviePublic,
   type WatchlistItemPublic,
@@ -95,9 +102,7 @@ function WatchedMovieItem({
       }}
       className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]"
     >
-      {/* Main card */}
       <article className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40">
-        {/* Poster - Full height, no margins, justified left */}
         <div className="w-[68px] shrink-0 relative z-10">
           <div className="h-full bg-muted">
             <MoviePoster
@@ -108,7 +113,6 @@ function WatchedMovieItem({
           </div>
         </div>
 
-        {/* Main ticket body */}
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5 relative z-10">
           <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {movie?.title ?? "Untitled"}
@@ -120,10 +124,8 @@ function WatchedMovieItem({
           )}
         </div>
 
-        {/* Dashed divider */}
         <div className="w-px self-stretch my-2 border-l border-dashed border-border/60 relative z-10" />
 
-        {/* Ticket stub — ratings */}
         <div className="flex items-center gap-2.5 px-3 shrink-0 relative z-10">
           {userRating && (
             <div className="flex flex-col items-center gap-0.5">
@@ -151,7 +153,6 @@ function WatchedMovieItem({
             </div>
           )}
 
-          {/* Decorative barcode */}
           <div
             className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5"
             aria-hidden="true"
@@ -164,8 +165,6 @@ function WatchedMovieItem({
               />
             ))}
           </div>
-
-          {/* Kebab menu removed */}
         </div>
       </article>
     </div>
@@ -196,9 +195,7 @@ function WatchlistMovieItem({
       }}
       className="group relative cursor-pointer select-none outline-none touch-manipulation transition-transform duration-200 active:scale-[0.98]"
     >
-      {/* Main card */}
       <article className="ticket-card relative z-10 flex bg-card dark:bg-[#25252d] text-card-foreground overflow-hidden h-[100px] transition-shadow duration-200 ring-1 ring-inset ring-black/5 dark:ring-white/5 group-hover:ring-primary/40 dark:group-hover:ring-primary/40">
-        {/* Poster - Full height, no margins, justified left */}
         <div className="w-[68px] shrink-0 relative z-10">
           <div className="h-full bg-muted">
             <MoviePoster
@@ -209,7 +206,6 @@ function WatchlistMovieItem({
           </div>
         </div>
 
-        {/* Main ticket body */}
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5 relative z-10">
           <h3 className="font-semibold text-[13px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {movie?.title ?? "Untitled"}
@@ -221,10 +217,8 @@ function WatchlistMovieItem({
           )}
         </div>
 
-        {/* Dashed divider */}
         <div className="w-px self-stretch my-2 border-l border-dashed border-border/60 relative z-10" />
 
-        {/* Ticket stub — ratings */}
         <div className="flex items-center gap-2.5 px-3 shrink-0 relative z-10">
           {tmdbRating && (
             <div className="flex flex-col items-center gap-0.5">
@@ -241,7 +235,6 @@ function WatchlistMovieItem({
             </div>
           )}
 
-          {/* Decorative barcode */}
           <div
             className="flex gap-[1.5px] items-center rotate-90 opacity-20 ml-0.5"
             aria-hidden="true"
@@ -254,8 +247,6 @@ function WatchlistMovieItem({
               />
             ))}
           </div>
-
-          {/* Kebab menu removed */}
         </div>
       </article>
     </div>
@@ -266,7 +257,7 @@ function EmptyListState({ message }: { message: string }) {
   return (
     <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-12 text-center">
       <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted to-muted/50">
-        <Star className="size-6 text-muted-foreground/60" />
+        <Film className="size-6 text-muted-foreground/60" />
       </div>
       <p className="text-sm text-muted-foreground">{message}</p>
     </div>
@@ -275,31 +266,64 @@ function EmptyListState({ message }: { message: string }) {
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-5 max-w-2xl mx-auto">
-      <div className="flex items-center gap-5">
-        <Skeleton className="size-16 rounded-full shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="flex justify-around">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex flex-col items-center gap-1">
-                <Skeleton className="h-5 w-8" />
-                <Skeleton className="h-3 w-12" />
-              </div>
-            ))}
+    <div className="space-y-4 max-w-2xl mx-auto">
+      {/* Banner + avatar skeleton */}
+      <div className="relative">
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        <div className="flex items-end gap-3 -mt-10 px-1">
+          <Skeleton className="size-20 rounded-full shrink-0 ring-4 ring-background" />
+          <div className="mb-1 space-y-1.5">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-40" />
           </div>
         </div>
       </div>
-      <div className="space-y-1">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-3 w-44" />
+      {/* Stats skeleton */}
+      <div className="grid grid-cols-3 rounded-2xl bg-muted/40 p-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex flex-col items-center gap-1.5">
+            <Skeleton className="h-5 w-8" />
+            <Skeleton className="h-3 w-12" />
+          </div>
+        ))}
       </div>
-      <Skeleton className="h-10 w-56" />
+      <Skeleton className="h-10 w-full rounded-lg" />
       <div className="space-y-2">
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-[100px]" />
         ))}
       </div>
     </div>
+  )
+}
+
+function FollowUserRow({
+  item,
+  onNavigate,
+}: {
+  item: FollowWithUserPublic
+  onNavigate: () => void
+}) {
+  const displayName = item.user.full_name || item.user.email
+  return (
+    <Link
+      to="/users/$userId"
+      params={{ userId: item.user.id }}
+      onClick={onNavigate}
+      className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/60 transition-colors"
+    >
+      <Avatar className="size-10 shrink-0">
+        <AvatarFallback className="text-sm font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
+          {getInitials(displayName)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="text-sm font-medium truncate">{displayName}</p>
+        {item.user.full_name && (
+          <p className="text-xs text-muted-foreground truncate">{item.user.email}</p>
+        )}
+      </div>
+    </Link>
   )
 }
 
@@ -312,6 +336,8 @@ function Profile() {
   const [watchlistSort, setWatchlistSort] = useState<WatchlistSort>("date")
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<FeedItemPublic | null>(null)
+  const [followersOpen, setFollowersOpen] = useState(false)
+  const [followingOpen, setFollowingOpen] = useState(false)
 
   const profileQuery = useQuery({
     queryKey: ["profile", currentUser?.id],
@@ -417,53 +443,21 @@ function Profile() {
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl mx-auto">
-      {/* Profile header — Instagram style */}
-      <div className="flex items-center gap-5">
-        <Avatar className="size-16 shrink-0">
-          <AvatarFallback className="text-xl font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-            {getInitials(profileName)}
-          </AvatarFallback>
-        </Avatar>
+      {/* Profile header */}
+      <div className="relative">
+        {/* Gradient banner */}
+        <div className="h-20 rounded-2xl bg-gradient-to-br from-primary/30 via-primary/10 to-muted/30 dark:from-primary/20 dark:via-primary/8 dark:to-muted/20" />
 
-        {/* Stats inline */}
-        <div className="flex flex-1 justify-around">
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-bold leading-tight">
-              {profile.watched_count}
-            </span>
-            <span className="text-[11px] text-muted-foreground">Movies</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-bold leading-tight">
-              {followersQuery.data?.count ?? 0}
-            </span>
-            <span className="text-[11px] text-muted-foreground">Followers</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-bold leading-tight">
-              {followingQuery.data?.count ?? 0}
-            </span>
-            <span className="text-[11px] text-muted-foreground">Following</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Name + manage button */}
-      <div className="flex items-center gap-3 -mt-1">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-bold leading-snug truncate">
-            {profileName}
-          </h2>
-        </div>
+        {/* Settings button in banner */}
         <Sheet>
           <SheetTrigger asChild>
             <Button
-              variant="outline"
-              size="sm"
-              className="h-8 rounded-lg text-xs gap-1.5 shrink-0"
+              variant="ghost"
+              size="icon"
+              aria-label="Manage profile"
+              className="absolute top-2.5 right-2.5 size-8 rounded-xl bg-background/60 backdrop-blur-sm hover:bg-background/80 transition-colors"
             >
-              <Settings className="size-3.5" />
-              Manage Profile
+              <Settings className="size-4" />
             </Button>
           </SheetTrigger>
           <SheetContent side="right">
@@ -523,15 +517,64 @@ function Profile() {
             </SheetFooter>
           </SheetContent>
         </Sheet>
+
+        {/* Avatar + name row — avatar overlaps banner */}
+        <div className="flex items-end gap-3 -mt-10 px-1">
+          <Avatar className="size-20 shrink-0 ring-4 ring-background shadow-sm">
+            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
+              {getInitials(profileName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="mb-1 min-w-0">
+            <h2 className="text-base font-bold leading-tight truncate">
+              {profileName}
+            </h2>
+            {profile.user.full_name && (
+              <p className="text-xs text-muted-foreground truncate">
+                {profile.user.email}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-3 rounded-2xl bg-muted/40 py-3">
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-lg font-bold leading-none">
+            {profile.watched_count}
+          </span>
+          <span className="text-[11px] text-muted-foreground">Movies</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setFollowersOpen(true)}
+          className="flex flex-col items-center gap-0.5 border-x border-border/40 hover:bg-muted/60 rounded-none transition-colors cursor-pointer"
+        >
+          <span className="text-lg font-bold leading-none">
+            {followersQuery.data?.count ?? 0}
+          </span>
+          <span className="text-[11px] text-muted-foreground">Followers</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setFollowingOpen(true)}
+          className="flex flex-col items-center gap-0.5 hover:bg-muted/60 rounded-none transition-colors cursor-pointer"
+        >
+          <span className="text-lg font-bold leading-none">
+            {followingQuery.data?.count ?? 0}
+          </span>
+          <span className="text-[11px] text-muted-foreground">Following</span>
+        </button>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="watched" className="gap-3">
-        <TabsList>
-          <TabsTrigger value="watched">
+        <TabsList className="w-full">
+          <TabsTrigger value="watched" className="flex-1">
             Watched ({profile.watched_movies.length})
           </TabsTrigger>
-          <TabsTrigger value="watchlist">
+          <TabsTrigger value="watchlist" className="flex-1">
             Watchlist ({profile.watchlist.length})
           </TabsTrigger>
         </TabsList>
@@ -636,6 +679,54 @@ function Profile() {
         }}
         item={selectedItem}
       />
+
+      {/* Followers Modal */}
+      <Dialog open={followersOpen} onOpenChange={setFollowersOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Followers</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-80 overflow-y-auto -mx-2">
+            {followersQuery.data?.data.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No followers yet.
+              </p>
+            ) : (
+              followersQuery.data?.data.map((item) => (
+                <FollowUserRow
+                  key={item.id}
+                  item={item}
+                  onNavigate={() => setFollowersOpen(false)}
+                />
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Following Modal */}
+      <Dialog open={followingOpen} onOpenChange={setFollowingOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Following</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-80 overflow-y-auto -mx-2">
+            {followingQuery.data?.data.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Not following anyone yet.
+              </p>
+            ) : (
+              followingQuery.data?.data.map((item) => (
+                <FollowUserRow
+                  key={item.id}
+                  item={item}
+                  onNavigate={() => setFollowingOpen(false)}
+                />
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

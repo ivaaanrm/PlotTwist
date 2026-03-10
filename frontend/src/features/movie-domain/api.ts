@@ -117,6 +117,15 @@ export type FollowsPublic = {
   count: number
 }
 
+export type FollowWithUserPublic = FollowPublic & {
+  user: UserPublic
+}
+
+export type FollowsWithUsersPublic = {
+  data: FollowWithUserPublic[]
+  count: number
+}
+
 export type FollowRequestPublic = {
   follow: FollowPublic
   requester: UserPublic
@@ -526,7 +535,7 @@ export const MovieDomainService = {
   listFollowers(data?: {
     skip?: number
     limit?: number
-  }): CancelablePromise<FollowsPublic> {
+  }): CancelablePromise<FollowsWithUsersPublic> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/follows/followers",
@@ -616,7 +625,7 @@ export const MovieDomainService = {
   listFollowing(data?: {
     skip?: number
     limit?: number
-  }): CancelablePromise<FollowsPublic> {
+  }): CancelablePromise<FollowsWithUsersPublic> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/follows/following",
@@ -852,6 +861,41 @@ export const MovieDomainService = {
       },
       errors: {
         403: "Forbidden",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  getFollowStatus(data: { userId: string }): CancelablePromise<FollowPublic | null> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/follows/status/{user_id}",
+      path: { user_id: data.userId },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  },
+
+  unfollowUser(data: { userId: string }): CancelablePromise<Message> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/follows/{user_id}",
+      path: { user_id: data.userId },
+      errors: {
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  readUserById(data: { userId: string }): CancelablePromise<UserPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/{user_id}",
+      path: { user_id: data.userId },
+      errors: {
         404: "Not Found",
         422: "Validation Error",
       },
