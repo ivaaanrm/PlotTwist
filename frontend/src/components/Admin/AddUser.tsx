@@ -34,6 +34,13 @@ import { handleError } from "@/utils"
 const formSchema = z
   .object({
     email: z.email({ message: "Invalid email address" }),
+    username: z
+      .string()
+      .min(3, { message: "Username must be at least 3 characters" })
+      .max(30, { message: "Username must be at most 30 characters" })
+      .regex(/^[a-zA-Z0-9_]+$/, {
+        message: "Username must contain only letters, numbers, and underscores",
+      }),
     full_name: z.string().optional(),
     password: z
       .string()
@@ -63,6 +70,7 @@ const AddUser = () => {
     criteriaMode: "all",
     defaultValues: {
       email: "",
+      username: "",
       full_name: "",
       password: "",
       confirm_password: "",
@@ -122,6 +130,22 @@ const AddUser = () => {
                         {...field}
                         required
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Username <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Username" type="text" {...field} required />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -24,11 +24,13 @@ from app.users.schemas import (
     CollectionItemPublic,
     Message,
     UpdatePassword,
+    UserAdminPublic,
     UserCreate,
     UserMe,
     UserProfile,
     UserPublic,
     UserRegister,
+    UsersAdminPublic,
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
@@ -40,17 +42,17 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
+    response_model=UsersAdminPublic,
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     users, count = users_service.list_users(session=session, skip=skip, limit=limit)
-    return UsersPublic(data=users, count=count)
+    return UsersAdminPublic(data=users, count=count)
 
 
 @router.post(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UserPublic,
+    response_model=UserAdminPublic,
 )
 def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     existing = users_service.get_user_by_email(session=session, email=user_in.email)
@@ -235,7 +237,7 @@ def read_user_by_id(
 @router.patch(
     "/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UserPublic,
+    response_model=UserAdminPublic,
 )
 def update_user(
     *,

@@ -84,6 +84,12 @@ export type UserMe = UserPublic & {
     is_superuser?: boolean;
 };
 
+export type UserAdminPublic = UserPublic & {
+    email: string;
+    is_active?: boolean;
+    is_superuser?: boolean;
+};
+
 export type UserRegister = {
     email: string;
     password: string;
@@ -93,6 +99,11 @@ export type UserRegister = {
 
 export type UsersPublic = {
     data: Array<UserPublic>;
+    count: number;
+};
+
+export type UsersAdminPublic = {
+    data: Array<UserAdminPublic>;
     count: number;
 };
 
@@ -189,13 +200,13 @@ export type UsersReadUsersData = {
     skip?: number;
 };
 
-export type UsersReadUsersResponse = (UsersPublic);
+export type UsersReadUsersResponse = (UsersAdminPublic);
 
 export type UsersCreateUserData = {
     requestBody: UserCreate;
 };
 
-export type UsersCreateUserResponse = (UserPublic);
+export type UsersCreateUserResponse = (UserAdminPublic);
 
 export type UsersReadUserMeResponse = (UserMe);
 
@@ -230,7 +241,7 @@ export type UsersUpdateUserData = {
     userId: string;
 };
 
-export type UsersUpdateUserResponse = (UserPublic);
+export type UsersUpdateUserResponse = (UserAdminPublic);
 
 export type UsersDeleteUserData = {
     userId: string;

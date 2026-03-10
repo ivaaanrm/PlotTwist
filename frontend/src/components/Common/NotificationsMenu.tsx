@@ -289,13 +289,13 @@ export function NotificationsMenu() {
                 ))}
                 {requests.map((request) => {
                   const displayName =
-                    request.requester.full_name || request.requester.email
+                    request.requester.full_name || request.requester.username
 
                   return (
                     <RequestCard
                       key={request.follow.id}
                       displayName={displayName}
-                      email={request.requester.email}
+                      email={request.requester.username}
                       followId={request.follow.id}
                       isResponding={
                         respondToRequestMutation.isPending &&

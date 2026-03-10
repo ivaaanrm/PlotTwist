@@ -74,8 +74,19 @@ class UserMe(UserPublic):
     is_superuser: bool = False
 
 
+class UserAdminPublic(UserPublic):
+    email: EmailStr
+    is_active: bool = True
+    is_superuser: bool = False
+
+
 class UsersPublic(SQLModel):
     data: list[UserPublic]
+    count: int
+
+
+class UsersAdminPublic(SQLModel):
+    data: list[UserAdminPublic]
     count: int
 
 
@@ -94,11 +105,13 @@ class Message(SQLModel):
 __all__ = [
     "Message",
     "UpdatePassword",
+    "UserAdminPublic",
     "UserCreate",
     "UserMe",
     "UserProfile",
     "UserPublic",
     "UserRegister",
+    "UsersAdminPublic",
     "UsersPublic",
     "UserUpdate",
     "UserUpdateMe",
