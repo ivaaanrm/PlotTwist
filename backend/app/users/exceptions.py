@@ -9,6 +9,10 @@ class UserEmailExistsError(ConflictError):
     detail = "User with this email already exists"
 
 
+class UserUsernameExistsError(ConflictError):
+    detail = "User with this username already exists"
+
+
 class IncorrectPasswordError(BadRequestError):
     detail = "Incorrect password"
 

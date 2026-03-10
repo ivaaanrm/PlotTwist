@@ -37,6 +37,11 @@ def get_user_by_email(*, session: Session, email: str) -> User | None:
     return session.exec(statement).first()
 
 
+def get_user_by_username(*, session: Session, username: str) -> User | None:
+    statement = select(User).where(User.username == username)
+    return session.exec(statement).first()
+
+
 def get_user_by_id(*, session: Session, user_id: uuid.UUID) -> User | None:
     return session.get(User, user_id)
 
@@ -70,7 +75,11 @@ def search_users(
     if trimmed_query:
         like_pattern = f"%{trimmed_query}%"
         statement = statement.where(
-            or_(User.email.ilike(like_pattern), User.full_name.ilike(like_pattern))
+            or_(
+                User.email.ilike(like_pattern),
+                User.full_name.ilike(like_pattern),
+                User.username.ilike(like_pattern),
+            )
         )
 
     count_statement = select(func.count()).select_from(statement.subquery())

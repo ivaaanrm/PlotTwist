@@ -304,11 +304,11 @@ function FollowUserRow({
   item: FollowWithUserPublic
   onNavigate: () => void
 }) {
-  const displayName = item.user.full_name || item.user.email
+  const displayName = item.user.full_name || item.user.username
   return (
     <Link
-      to="/users/$userId"
-      params={{ userId: item.user.id }}
+      to="/users/$username"
+      params={{ username: item.user.username }}
       onClick={onNavigate}
       className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/60 transition-colors"
     >
@@ -319,9 +319,7 @@ function FollowUserRow({
       </Avatar>
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{displayName}</p>
-        {item.user.full_name && (
-          <p className="text-xs text-muted-foreground truncate">{item.user.email}</p>
-        )}
+        <p className="text-xs text-muted-foreground truncate">@{item.user.username}</p>
       </div>
     </Link>
   )
@@ -439,7 +437,7 @@ function Profile() {
     return <ProfileSkeleton />
   }
 
-  const profileName = profile.user.full_name || profile.user.email
+  const profileName = profile.user.full_name || profile.user.username
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl mx-auto">
@@ -479,7 +477,7 @@ function Profile() {
                     {profileName}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {profile.user.email}
+                    {currentUser?.email}
                   </p>
                 </div>
               </div>
@@ -495,7 +493,7 @@ function Profile() {
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
                     Email
                   </p>
-                  <p className="text-sm mt-0.5">{profile.user.email}</p>
+                  <p className="text-sm mt-0.5">{currentUser?.email}</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
@@ -529,11 +527,9 @@ function Profile() {
             <h2 className="text-base font-bold leading-tight truncate">
               {profileName}
             </h2>
-            {profile.user.full_name && (
-              <p className="text-xs text-muted-foreground truncate">
-                {profile.user.email}
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground truncate">
+              @{profile.user.username}
+            </p>
           </div>
         </div>
       </div>

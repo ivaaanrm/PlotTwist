@@ -40,7 +40,7 @@ function UserCard({
   isSendingRequest: boolean
   onFollow: (userId: string) => void
 }) {
-  const displayName = user.full_name || user.email
+  const displayName = user.full_name || user.username
 
   return (
     <article className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-primary/20">
@@ -52,7 +52,7 @@ function UserCard({
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold truncate">{displayName}</p>
         <p className="text-[11px] text-muted-foreground truncate">
-          {user.email}
+          @{user.username}
         </p>
       </div>
 

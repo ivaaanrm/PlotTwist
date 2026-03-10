@@ -18,12 +18,14 @@ from app.users.exceptions import (
     SuperUserDeletionError,
     UserEmailExistsError,
     UserNotFoundError,
+    UserUsernameExistsError,
 )
 from app.users.schemas import (
     CollectionItemPublic,
     Message,
     UpdatePassword,
     UserCreate,
+    UserMe,
     UserProfile,
     UserPublic,
     UserRegister,
@@ -54,6 +56,12 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     existing = users_service.get_user_by_email(session=session, email=user_in.email)
     if existing:
         raise UserEmailExistsError()
+    if user_in.username:
+        existing_username = users_service.get_user_by_username(
+            session=session, username=user_in.username
+        )
+        if existing_username:
+            raise UserUsernameExistsError()
 
     user = users_service.create_user(session=session, user_create=user_in)
     if email_settings.emails_enabled and user_in.email:
@@ -70,7 +78,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     return user
 
 
-@router.patch("/me", response_model=UserPublic)
+@router.patch("/me", response_model=UserMe)
 def update_user_me(
     *,
     session: SessionDep,
@@ -83,6 +91,12 @@ def update_user_me(
         )
         if existing_user and existing_user.id != current_user.id:
             raise UserEmailExistsError()
+    if user_in.username:
+        existing_user = users_service.get_user_by_username(
+            session=session, username=user_in.username
+        )
+        if existing_user and existing_user.id != current_user.id:
+            raise UserUsernameExistsError()
 
     current_user.sqlmodel_update(user_in.model_dump(exclude_unset=True))
     session.add(current_user)
@@ -110,7 +124,7 @@ def update_password_me(
     return Message(message="Password updated successfully")
 
 
-@router.get("/me", response_model=UserPublic)
+@router.get("/me", response_model=UserMe)
 def read_user_me(current_user: CurrentUser) -> Any:
     return current_user
 
@@ -128,6 +142,11 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     existing = users_service.get_user_by_email(session=session, email=user_in.email)
     if existing:
         raise UserEmailExistsError()
+    existing_username = users_service.get_user_by_username(
+        session=session, username=user_in.username
+    )
+    if existing_username:
+        raise UserUsernameExistsError()
 
     user_create = UserCreate.model_validate(user_in)
     user = users_service.create_user(session=session, user_create=user_create)
@@ -150,6 +169,55 @@ def search_users(
         limit=limit,
     )
     return UsersPublic(data=users, count=count)
+
+
+@router.get("/by-username/{username}", response_model=UserPublic)
+def read_user_by_username(
+    username: str,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Any:
+    user = users_service.get_user_by_username(session=session, username=username)
+    if user is None:
+        raise UserNotFoundError()
+    return user
+
+
+@router.get("/by-username/{username}/profile", response_model=UserProfile)
+def get_user_profile_by_username(
+    profile_user: users_dependencies.VisibleProfileUserByUsernameDep,
+    session: SessionDep,
+) -> Any:
+    adapter = SqlCollectionAdapter(session)
+    watched_items, watched_count = collections_service.get_collection_items(
+        adapter=adapter,
+        user_id=profile_user.id,
+        collection_name="watched",
+        skip=0,
+        limit=100,
+    )
+    watchlist_items, _ = collections_service.get_collection_items(
+        adapter=adapter,
+        user_id=profile_user.id,
+        collection_name="watchlist",
+        skip=0,
+        limit=100,
+    )
+
+    ratings = [item.rating for item in watched_items if item.rating is not None]
+    avg_rating = sum(ratings) / len(ratings) if ratings else None
+
+    return UserProfile(
+        user=UserPublic.model_validate(profile_user),
+        watched_count=watched_count,
+        average_rating=avg_rating,
+        watched_media=[
+            CollectionItemPublic.model_validate(item) for item in watched_items
+        ],
+        watchlist=[
+            CollectionItemPublic.model_validate(item) for item in watchlist_items
+        ],
+    )
 
 
 @router.get("/{user_id}", response_model=UserPublic)

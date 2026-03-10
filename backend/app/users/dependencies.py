@@ -40,3 +40,34 @@ def get_visible_profile_user(
 
 
 VisibleProfileUserDep = Annotated[User, Depends(get_visible_profile_user)]
+
+
+def get_user_by_username_or_404(username: str, session: SessionDep) -> User:
+    user = users_service.get_user_by_username(session=session, username=username)
+    if not user:
+        raise UserNotFoundError()
+    return user
+
+
+UserByUsernameDep = Annotated[User, Depends(get_user_by_username_or_404)]
+
+
+def get_visible_profile_user_by_username(
+    user: UserByUsernameDep,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> User:
+    if user.id == current_user.id or current_user.is_superuser:
+        return user
+
+    follow = follows_service.get_follow(
+        session=session,
+        follower_id=current_user.id,
+        following_id=user.id,
+    )
+    if not follow or follow.status != FollowStatus.accepted:
+        raise ProfileNotVisibleError()
+    return user
+
+
+VisibleProfileUserByUsernameDep = Annotated[User, Depends(get_visible_profile_user_by_username)]

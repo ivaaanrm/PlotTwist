@@ -39,7 +39,7 @@ function FeedCard({
   const user = item.user
   const ci = item.collection_item
   const media = ci.media
-  const displayName = user.full_name || user.email
+  const displayName = user.full_name || user.username
   const userRating = formatRating(ci.rating)
   const tmdbRating = formatTmdbRating(media?.tmdb_rating)
   const watchedDate = formatRelativeTime(ci.created_at)

@@ -94,11 +94,15 @@ export type WatchedMoviesPublic = {
 
 export type UserPublic = {
   id: string
-  email: string
+  username: string
   full_name?: string | null
+  created_at?: string | null
+}
+
+export type UserMe = UserPublic & {
+  email: string
   is_active?: boolean
   is_superuser?: boolean
-  created_at?: string | null
 }
 
 export type FollowStatus = "pending" | "accepted" | "declined"
@@ -900,5 +904,31 @@ export const MovieDomainService = {
         422: "Validation Error",
       },
     })
+  },
+
+  readUserByUsername(data: { username: string }): CancelablePromise<UserPublic> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/by-username/{username}",
+      path: { username: data.username },
+      errors: {
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    })
+  },
+
+  getUserProfileByUsername(data: { username: string }): CancelablePromise<UserProfile> {
+    const promise = __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/by-username/{username}/profile",
+      path: { username: data.username },
+      errors: {
+        403: "Forbidden",
+        404: "Not Found",
+        422: "Validation Error",
+      },
+    }) as CancelablePromise<BackendUserProfile>
+    return mapCancelablePromise(promise, normalizeUserProfile)
   },
 }

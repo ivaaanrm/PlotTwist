@@ -22,8 +22,13 @@ import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
 const formSchema = z
   .object({
-    email: z.email(),
     full_name: z.string().min(1, { message: "Full Name is required" }),
+    username: z
+      .string()
+      .min(3, { message: "Username must be at least 3 characters" })
+      .max(30, { message: "Username must be at most 30 characters" })
+      .regex(/^[a-zA-Z0-9_]+$/, { message: "Letters, numbers, and underscores only" }),
+    email: z.email(),
     password: z
       .string()
       .min(1, { message: "Password is required" })
@@ -64,8 +69,9 @@ function SignUp() {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      email: "",
       full_name: "",
+      username: "",
+      email: "",
       password: "",
       confirm_password: "",
     },
@@ -101,6 +107,25 @@ function SignUp() {
                     <Input
                       data-testid="full-name-input"
                       placeholder="User"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="username-input"
+                      placeholder="johndoe"
                       type="text"
                       {...field}
                     />

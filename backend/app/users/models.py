@@ -17,6 +17,7 @@ def get_datetime_utc() -> datetime:
 class User(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     email: EmailStr = Field(unique=True, index=True, max_length=255)
+    username: str = Field(unique=True, index=True, max_length=30)
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)

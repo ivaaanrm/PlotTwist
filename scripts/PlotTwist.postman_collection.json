@@ -1,0 +1,1215 @@
+{
+  "info": {
+    "name": "PlotTwist API",
+    "description": "Full API collection for the PlotTwist social movie app backend.\n\n## Setup\n1. Set `base_url` variable to your backend URL (default: `http://localhost:8000`)\n2. Run **Auth → Login** to auto-populate `auth_token`\n3. All protected endpoints use Bearer auth automatically via the collection-level auth setting\n\n## Variables\n- `base_url` — backend root URL\n- `auth_token` — JWT access token (auto-set on login)\n- `user_id`, `other_user_id` — UUIDs for user-related tests\n- `collection_id`, `collection_item_id` — UUIDs for collection tests\n- `follow_id`, `invitation_id` — UUIDs for follow/invitation tests\n- `tmdb_id` — TMDB movie/series ID for media tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "auth_token", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "other_user_id", "value": "", "type": "string" },
+    { "key": "collection_id", "value": "", "type": "string" },
+    { "key": "collection_item_id", "value": "", "type": "string" },
+    { "key": "named_collection_id", "value": "", "type": "string" },
+    { "key": "named_collection_item_id", "value": "", "type": "string" },
+    { "key": "follow_id", "value": "", "type": "string" },
+    { "key": "invitation_id", "value": "", "type": "string" },
+    { "key": "tmdb_id", "value": "550", "type": "string" },
+    { "key": "superuser_token", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{auth_token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (get token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', json.access_token);",
+                  "    console.log('Token saved:', json.access_token.substring(0, 20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "user@example.com", "description": "User email" },
+                { "key": "password", "value": "changethis", "description": "User password" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login/access-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login", "access-token"]
+            },
+            "description": "OAuth2 password flow. Saves access_token to collection variable `auth_token`."
+          }
+        },
+        {
+          "name": "Login as Superuser",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('superuser_token', json.access_token);",
+                  "    console.log('Superuser token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "admin@example.com", "description": "Superuser email" },
+                { "key": "password", "value": "changethis", "description": "Superuser password" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login/access-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login", "access-token"]
+            },
+            "description": "Login as superuser. Saves token to `superuser_token`."
+          }
+        },
+        {
+          "name": "Test Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/login/test-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login", "test-token"]
+            },
+            "description": "Returns the current user's data if the token is valid."
+          }
+        },
+        {
+          "name": "Request Password Recovery",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/password-recovery/user@example.com",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "password-recovery", "user@example.com"]
+            },
+            "description": "Sends a password reset email. Always returns success to prevent user enumeration."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"PASTE_RESET_TOKEN_HERE\",\n  \"new_password\": \"newpassword123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/reset-password/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reset-password", ""]
+            },
+            "description": "Reset password using token from email. Password must be 8-128 chars."
+          }
+        },
+        {
+          "name": "Get Password Recovery HTML (Superuser)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{superuser_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/password-recovery-html-content/user@example.com",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "password-recovery-html-content", "user@example.com"]
+            },
+            "description": "Returns the HTML content of the password recovery email. Superuser only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register (public signup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('user_id', json.id);",
+                  "    console.log('New user ID:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"full_name\": \"New User\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "signup"]
+            },
+            "description": "Public user registration. No auth required. Password must be 8-128 chars."
+          }
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('user_id', json.id);",
+                  "    console.log('Current user ID:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me"]
+            },
+            "description": "Returns the currently authenticated user's profile."
+          }
+        },
+        {
+          "name": "Update Current User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Updated Name\",\n  \"email\": \"updated@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me"]
+            },
+            "description": "Update current user's full_name and/or email."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"changethis\",\n  \"new_password\": \"newpassword123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me/password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me", "password"]
+            },
+            "description": "Change the current user's password. Requires current password."
+          }
+        },
+        {
+          "name": "Delete Current User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me"]
+            },
+            "description": "Permanently delete current user's account. Superusers cannot delete themselves."
+          }
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/search?query=john&skip=0&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "search"],
+              "query": [
+                { "key": "query", "value": "john", "description": "Search by name or email" },
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Search users by name or email. Returns paginated results."
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{other_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{other_user_id}}"]
+            },
+            "description": "Get any user's public info by UUID."
+          }
+        },
+        {
+          "name": "Get User Profile (with collections)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{other_user_id}}/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{other_user_id}}", "profile"]
+            },
+            "description": "Get a user's full profile including watched count, average rating, watched media, and watchlist."
+          }
+        },
+        {
+          "name": "[Admin] List All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{superuser_token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/?skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ""],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "100" }
+              ]
+            },
+            "description": "List all users (paginated). Superuser only."
+          }
+        },
+        {
+          "name": "[Admin] Create User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{superuser_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"adminmade@example.com\",\n  \"password\": \"password123\",\n  \"full_name\": \"Admin Created User\",\n  \"is_active\": true,\n  \"is_superuser\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ""]
+            },
+            "description": "Create a new user as admin. Superuser only."
+          }
+        },
+        {
+          "name": "[Admin] Update User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{superuser_token}}", "type": "string" }]
+            },
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Renamed by Admin\",\n  \"is_active\": true,\n  \"is_superuser\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{other_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{other_user_id}}"]
+            },
+            "description": "Update any user's data. Superuser only."
+          }
+        },
+        {
+          "name": "[Admin] Delete User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{superuser_token}}", "type": "string" }]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{other_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{other_user_id}}"]
+            },
+            "description": "Delete any user by ID. Superuser only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collections (Personal)",
+      "description": "Personal unnamed collections such as 'watched', 'watchlist', 'favorites'. Use the collection_name path param to target any named bucket.",
+      "item": [
+        {
+          "name": "Add to Watched",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('collection_item_id', json.id);",
+                  "    console.log('Collection item ID:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tmdb_id\": 550,\n  \"media_type\": \"movie\",\n  \"rating\": 4.5\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/watched",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "watched"]
+            },
+            "description": "Add a movie/series to the 'watched' collection with an optional rating (0.5–5.0, 0.5 steps)."
+          }
+        },
+        {
+          "name": "Add to Watchlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tmdb_id\": 27205,\n  \"media_type\": \"movie\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/watchlist",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "watchlist"]
+            },
+            "description": "Add a movie/series to the 'watchlist' (no rating needed)."
+          }
+        },
+        {
+          "name": "Add to Favorites",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tmdb_id\": 238,\n  \"media_type\": \"movie\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/favorites",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "favorites"]
+            },
+            "description": "Add to 'favorites' personal collection."
+          }
+        },
+        {
+          "name": "List Watched",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/watched?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "watched"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "List all items in the current user's 'watched' collection."
+          }
+        },
+        {
+          "name": "List Watchlist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/watchlist?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "watchlist"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "List all items in the current user's 'watchlist'."
+          }
+        },
+        {
+          "name": "List Favorites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/favorites?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "favorites"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "List all items in the current user's 'favorites' collection."
+          }
+        },
+        {
+          "name": "Update Collection Item (rating)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 3.5\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/items/{{collection_item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "items", "{{collection_item_id}}"]
+            },
+            "description": "Update the rating of a collection item. Rating must be 0.5–5.0 in 0.5 steps."
+          }
+        },
+        {
+          "name": "Remove Collection Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/items/{{collection_item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "items", "{{collection_item_id}}"]
+            },
+            "description": "Remove an item from a personal collection by item ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collections (Named)",
+      "description": "User-created named collections. Can be collaborative. Full CRUD plus member management and invitations.",
+      "item": [
+        {
+          "name": "Create Named Collection",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('named_collection_id', json.id);",
+                  "    console.log('Named collection ID:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Best Sci-Fi Films\",\n  \"description\": \"My curated list of the best sci-fi movies\",\n  \"is_collaborative\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named"]
+            },
+            "description": "Create a new named collection. Set `is_collaborative: true` to allow inviting others."
+          }
+        },
+        {
+          "name": "List Named Collections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "List the current user's named collections."
+          }
+        },
+        {
+          "name": "Get Named Collection (with items)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}"]
+            },
+            "description": "Get a named collection's details including all its items."
+          }
+        },
+        {
+          "name": "Update Named Collection",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Collection Name\",\n  \"description\": \"Updated description\",\n  \"is_collaborative\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}"]
+            },
+            "description": "Update name, description, or collaborative status of a named collection."
+          }
+        },
+        {
+          "name": "Delete Named Collection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}"]
+            },
+            "description": "Permanently delete a named collection and all its items."
+          }
+        },
+        {
+          "name": "Add Item to Named Collection",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('named_collection_item_id', json.id);",
+                  "    console.log('Named collection item ID:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tmdb_id\": 157336,\n  \"media_type\": \"movie\",\n  \"rating\": 5.0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}/items",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}", "items"]
+            },
+            "description": "Add a media item to a named collection. tmdb_id 157336 = Interstellar."
+          }
+        },
+        {
+          "name": "Remove Item from Named Collection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}/items/{{named_collection_item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}", "items", "{{named_collection_item_id}}"]
+            },
+            "description": "Remove a specific item from a named collection."
+          }
+        },
+        {
+          "name": "Reorder Named Collection Items",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item_ids\": [\n    \"00000000-0000-0000-0000-000000000001\",\n    \"00000000-0000-0000-0000-000000000002\",\n    \"00000000-0000-0000-0000-000000000003\"\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}/items/reorder",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}", "items", "reorder"]
+            },
+            "description": "Reorder items in a named collection. Provide item UUIDs in the desired order."
+          }
+        },
+        {
+          "name": "Invite User to Collaborative Collection",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('invitation_id', json.id);",
+                  "    console.log('Invitation ID:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiver_id\": \"{{other_user_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}/invitations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}", "invitations"]
+            },
+            "description": "Invite another user to a collaborative collection. Collection must have `is_collaborative: true`."
+          }
+        },
+        {
+          "name": "List Received Invitations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/invitations/received",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "invitations", "received"]
+            },
+            "description": "List all pending collection invitations received by the current user."
+          }
+        },
+        {
+          "name": "Respond to Invitation (Accept)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/invitations/{{invitation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "invitations", "{{invitation_id}}"]
+            },
+            "description": "Accept a collection invitation."
+          }
+        },
+        {
+          "name": "Respond to Invitation (Decline)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"declined\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/invitations/{{invitation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "invitations", "{{invitation_id}}"]
+            },
+            "description": "Decline a collection invitation."
+          }
+        },
+        {
+          "name": "Remove Member from Collection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collections/named/{{named_collection_id}}/members/{{other_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collections", "named", "{{named_collection_id}}", "members", "{{other_user_id}}"]
+            },
+            "description": "Remove a member from a collaborative collection. Owner only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Follows",
+      "description": "Follow system with request/accept flow. Users must accept follow requests before they are visible in followers list.",
+      "item": [
+        {
+          "name": "Send Follow Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('follow_id', json.id);",
+                  "    console.log('Follow ID:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/{{other_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "{{other_user_id}}"]
+            },
+            "description": "Send a follow request to another user. Cannot follow yourself."
+          }
+        },
+        {
+          "name": "Get Follow Status with User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/status/{{other_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "status", "{{other_user_id}}"]
+            },
+            "description": "Get the follow relationship status between the current user and a target user. Returns null if no relationship."
+          }
+        },
+        {
+          "name": "List Pending Follow Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/requests?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "requests"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "List all incoming pending follow requests for the current user."
+          }
+        },
+        {
+          "name": "Accept Follow Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/{{follow_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "{{follow_id}}"]
+            },
+            "description": "Accept a pending follow request."
+          }
+        },
+        {
+          "name": "Decline Follow Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"declined\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/{{follow_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "{{follow_id}}"]
+            },
+            "description": "Decline a pending follow request."
+          }
+        },
+        {
+          "name": "Unfollow / Cancel Request",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/{{other_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "{{other_user_id}}"]
+            },
+            "description": "Unfollow a user or cancel a pending follow request."
+          }
+        },
+        {
+          "name": "List My Followers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/followers?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "followers"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "List users who follow the current user (accepted follows only)."
+          }
+        },
+        {
+          "name": "List Who I'm Following",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/follows/following?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "follows", "following"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "List users the current user is following (accepted follows only)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "description": "Movie and TV series endpoints backed by TMDB. Results may be cached in the local database.",
+      "item": [
+        {
+          "name": "Search Movies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/search?query=inception&page=1&media_type=movie",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "search"],
+              "query": [
+                { "key": "query", "value": "inception", "description": "Search term" },
+                { "key": "page", "value": "1" },
+                { "key": "media_type", "value": "movie", "description": "movie or series" }
+              ]
+            },
+            "description": "Search TMDB for movies. Returns paginated results with poster paths and metadata."
+          }
+        },
+        {
+          "name": "Search TV Series",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/search?query=breaking+bad&page=1&media_type=series",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "search"],
+              "query": [
+                { "key": "query", "value": "breaking bad" },
+                { "key": "page", "value": "1" },
+                { "key": "media_type", "value": "series" }
+              ]
+            },
+            "description": "Search TMDB for TV series."
+          }
+        },
+        {
+          "name": "Trending Movies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/trending?media_type=movie",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "trending"],
+              "query": [
+                { "key": "media_type", "value": "movie", "description": "movie or series" }
+              ]
+            },
+            "description": "Get trending movies from TMDB."
+          }
+        },
+        {
+          "name": "Trending TV Series",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/trending?media_type=series",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "trending"],
+              "query": [
+                { "key": "media_type", "value": "series" }
+              ]
+            },
+            "description": "Get trending TV series from TMDB."
+          }
+        },
+        {
+          "name": "Get Movie (cached)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/{{tmdb_id}}?media_type=movie",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "{{tmdb_id}}"],
+              "query": [
+                { "key": "media_type", "value": "movie" }
+              ]
+            },
+            "description": "Get movie details by TMDB ID. Fetches from TMDB and caches in local DB. Default `tmdb_id` is 550 (Fight Club)."
+          }
+        },
+        {
+          "name": "Get Movie Full Details (with cast)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/{{tmdb_id}}/details?media_type=movie",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "{{tmdb_id}}", "details"],
+              "query": [
+                { "key": "media_type", "value": "movie" }
+              ]
+            },
+            "description": "Get full movie details including genres, director, and cast. Always fetches fresh from TMDB (not cached)."
+          }
+        },
+        {
+          "name": "Get TV Series (cached)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/1396?media_type=series",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "1396"],
+              "query": [
+                { "key": "media_type", "value": "series" }
+              ]
+            },
+            "description": "Get TV series details. TMDB ID 1396 = Breaking Bad."
+          }
+        },
+        {
+          "name": "Get TV Series Full Details (with cast)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movies/1396/details?media_type=series",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "movies", "1396", "details"],
+              "query": [
+                { "key": "media_type", "value": "series" }
+              ]
+            },
+            "description": "Full details for Breaking Bad (TMDB ID 1396) including cast."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feed",
+      "item": [
+        {
+          "name": "Get My Feed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/feed/?skip=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "feed", ""],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "Get a paginated feed of media watched by users the current user follows."
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/utils/health-check/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "utils", "health-check", ""]
+            },
+            "description": "Simple health check. Returns true if the backend is up. No auth required."
+          }
+        },
+        {
+          "name": "[Admin] Send Test Email",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{superuser_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/utils/test-email/?email_to=test@example.com",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "utils", "test-email", ""],
+              "query": [
+                { "key": "email_to", "value": "test@example.com" }
+              ]
+            },
+            "description": "Send a test email to verify email configuration. Superuser only."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -19,7 +19,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { formatDate, formatRating, formatTmdbRating } from "@/lib/media"
 import { getInitials, handleError } from "@/utils"
 
-export const Route = createFileRoute("/_layout/users/$userId")({
+export const Route = createFileRoute("/_layout/users/$username")({
   component: UserProfilePage,
 })
 
@@ -281,30 +281,32 @@ function FollowButton({
 }
 
 function UserProfilePage() {
-  const { userId } = Route.useParams()
+  const { username } = Route.useParams()
   const { user: currentUser } = useAuth()
   const [selectedItem, setSelectedItem] = useState<FeedItemPublic | null>(null)
 
   // Redirect to own profile
-  if (currentUser && userId === currentUser.id) {
+  if (currentUser && username === currentUser.username) {
     throw redirect({ to: "/profile" })
   }
 
   const userQuery = useQuery({
-    queryKey: ["user", userId],
-    queryFn: () => MovieDomainService.readUserById({ userId }),
+    queryKey: ["user", username],
+    queryFn: () => MovieDomainService.readUserByUsername({ username }),
   })
 
   const profileQuery = useQuery({
-    queryKey: ["userProfile", userId],
-    queryFn: () => MovieDomainService.getUserProfile({ userId }),
+    queryKey: ["userProfile", username],
+    queryFn: () => MovieDomainService.getUserProfileByUsername({ username }),
     retry: false,
   })
 
+  const userId = userQuery.data?.id ?? ""
+
   const followStatusQuery = useQuery({
-    queryKey: ["followStatus", userId],
+    queryKey: ["followStatus", username],
     queryFn: () => MovieDomainService.getFollowStatus({ userId }),
-    enabled: Boolean(currentUser),
+    enabled: Boolean(currentUser) && Boolean(userId),
   })
 
   if (userQuery.isLoading) {
@@ -320,7 +322,7 @@ function UserProfilePage() {
   }
 
   const user = userQuery.data
-  const displayName = user.full_name || user.email
+  const displayName = user.full_name || user.username
   const followStatus: "none" | "pending" | "accepted" =
     followStatusQuery.data?.status === "accepted"
       ? "accepted"
@@ -348,13 +350,11 @@ function UserProfilePage() {
                 <h2 className="text-base font-bold leading-tight truncate">
                   {displayName}
                 </h2>
-                {user.full_name && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground truncate">
+                  @{user.username}
+                </p>
               </div>
-              {!followStatusQuery.isLoading && (
+              {!followStatusQuery.isLoading && userId && (
                 <FollowButton
                   userId={userId}
                   followStatus={followStatus}

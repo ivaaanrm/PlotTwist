@@ -284,12 +284,12 @@ function InviteDialog({
                       >
                         <Avatar className="size-7">
                           <AvatarFallback className="text-[9px] font-semibold bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                            {getInitials(user.full_name || user.email)}
+                            {getInitials(user.full_name || user.username)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {user.full_name || user.email}
+                            {user.full_name || user.username}
                           </p>
                         </div>
                         <LoadingButton
