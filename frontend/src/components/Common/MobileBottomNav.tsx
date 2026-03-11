@@ -1,9 +1,10 @@
 import { Link as RouterLink, useRouterState } from "@tanstack/react-router"
-import { Home, Layers, Plus } from "lucide-react"
+import { Home, Layers, Search, Sparkles } from "lucide-react"
 
 const navItems = [
   { icon: Home, label: "Home", path: "/" },
-  { icon: Plus, label: "Discover", path: "/discover" },
+  { icon: Search, label: "Discover", path: "/discover" },
+  { icon: Sparkles, label: "For You", path: "/recommend" },
   { icon: Layers, label: "Collections", path: "/collections" },
 ]
 
@@ -19,7 +20,6 @@ export function MobileBottomNav() {
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {navItems.map((item) => {
           const isActive = currentPath === item.path
-          const isDiscover = item.path === "/discover"
 
           return (
             <RouterLink
@@ -27,22 +27,16 @@ export function MobileBottomNav() {
               to={item.path}
               className="flex flex-1 flex-col items-center justify-center transition-all duration-200"
             >
-              {isDiscover ? (
-                <div className="flex p-2 items-center justify-center rounded-full bg-primary text-primary-foreground active:scale-95 transition-transform hover:scale-105">
-                  <item.icon className="size-6" strokeWidth={2.5} />
-                </div>
-              ) : (
-                <div
-                  className={`p-2 rounded-full transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  <item.icon
-                    className={`size-6 transition-transform ${isActive ? "scale-110" : ""}`}
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                </div>
-              )}
+              <div
+                className={`p-2 rounded-full transition-colors ${
+                  isActive ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <item.icon
+                  className={`size-6 transition-transform ${isActive ? "scale-110" : ""}`}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+              </div>
             </RouterLink>
           )
         })}
