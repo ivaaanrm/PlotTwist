@@ -9,7 +9,7 @@ type Props = {
 
 export function AnswerChips({ options, selected, onSelect, disabled }: Props) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="flex flex-col gap-3">
       {options.map((option) => (
         <button
           key={option}
@@ -21,8 +21,8 @@ export function AnswerChips({ options, selected, onSelect, disabled }: Props) {
             "hover:border-primary hover:bg-primary/5 active:scale-[0.98]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             selected === option
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border bg-card text-foreground",
+              ? "border-primary bg-primary/[0.08] text-primary shadow-sm"
+              : "border-border bg-card text-foreground hover:bg-muted/50",
             disabled && "pointer-events-none opacity-60",
           )}
         >

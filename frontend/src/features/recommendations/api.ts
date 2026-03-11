@@ -1,4 +1,4 @@
-import { CancelablePromise, OpenAPI } from "@/client"
+import { type CancelablePromise, OpenAPI } from "@/client"
 import { request as __request } from "@/client/core/request"
 
 export type QuestionResponse = {

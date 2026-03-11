@@ -4,10 +4,10 @@ import { Film, Lock, Star } from "lucide-react"
 import { useMemo, useState } from "react"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   type FeedItemPublic,
   MovieDomainService,
@@ -130,7 +130,10 @@ function ReadonlyWatchedItem({
           )}
           {tmdbRating && (
             <div className="flex flex-col items-center gap-0.5">
-              <Star className="size-4 text-muted-foreground" strokeWidth={1.5} />
+              <Star
+                className="size-4 text-muted-foreground"
+                strokeWidth={1.5}
+              />
               <span className="text-[15px] font-semibold text-card-foreground leading-none">
                 {tmdbRating}
               </span>
@@ -205,7 +208,10 @@ function ReadonlyWatchlistItem({
         <div className="flex items-center gap-2.5 px-3 shrink-0 relative z-10">
           {tmdbRating && (
             <div className="flex flex-col items-center gap-0.5">
-              <Star className="size-4 text-muted-foreground" strokeWidth={1.5} />
+              <Star
+                className="size-4 text-muted-foreground"
+                strokeWidth={1.5}
+              />
               <span className="text-[15px] font-semibold text-card-foreground leading-none">
                 {tmdbRating}
               </span>
@@ -301,11 +307,6 @@ function UserProfilePage() {
   const { user: currentUser } = useAuth()
   const [selectedItem, setSelectedItem] = useState<FeedItemPublic | null>(null)
 
-  // Redirect to own profile
-  if (currentUser && username === currentUser.username) {
-    return <Navigate to="/profile" replace />
-  }
-
   const userQuery = useQuery({
     queryKey: ["user", username],
     queryFn: () => MovieDomainService.readUserByUsername({ username }),
@@ -342,6 +343,11 @@ function UserProfilePage() {
     enabled: Boolean(currentUser) && Boolean(userId),
   })
 
+  // Redirect to own profile
+  if (currentUser && username === currentUser.username) {
+    return <Navigate to="/profile" replace />
+  }
+
   if (userQuery.isLoading) {
     return <UserProfileSkeleton />
   }
@@ -363,7 +369,8 @@ function UserProfilePage() {
         ? "pending"
         : "none"
 
-  const isProfileVisible = profileQuery.data !== undefined && !profileQuery.isError
+  const isProfileVisible =
+    profileQuery.data !== undefined && !profileQuery.isError
   const profile = profileQuery.data
 
   return (
@@ -392,9 +399,7 @@ function UserProfilePage() {
                 <FollowButton
                   userId={userId}
                   followStatus={followStatus}
-                  onStatusChange={() =>
-                    followStatusQuery.refetch()
-                  }
+                  onStatusChange={() => followStatusQuery.refetch()}
                 />
               )}
             </div>
@@ -417,7 +422,9 @@ function UserProfilePage() {
                 ? profile.average_rating.toFixed(1)
                 : "—"}
             </span>
-            <span className="text-[11px] text-muted-foreground">Avg Rating</span>
+            <span className="text-[11px] text-muted-foreground">
+              Avg Rating
+            </span>
           </div>
         </div>
       )}
@@ -453,7 +460,9 @@ function UserProfilePage() {
                 <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted to-muted/50">
                   <Film className="size-6 text-muted-foreground/60" />
                 </div>
-                <p className="text-sm text-muted-foreground">No watched movies yet.</p>
+                <p className="text-sm text-muted-foreground">
+                  No watched movies yet.
+                </p>
               </div>
             ) : (
               profile.watched_movies.map((item) => (
@@ -462,7 +471,9 @@ function UserProfilePage() {
                   item={item}
                   username={username}
                   currentUserRating={
-                    item.movie?.tmdb_id ? watchedRatings.get(item.movie.tmdb_id) : undefined
+                    item.movie?.tmdb_id
+                      ? watchedRatings.get(item.movie.tmdb_id)
+                      : undefined
                   }
                   onClick={() =>
                     setSelectedItem({
@@ -490,7 +501,9 @@ function UserProfilePage() {
                 <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted to-muted/50">
                   <Film className="size-6 text-muted-foreground/60" />
                 </div>
-                <p className="text-sm text-muted-foreground">Watchlist is empty.</p>
+                <p className="text-sm text-muted-foreground">
+                  Watchlist is empty.
+                </p>
               </div>
             ) : (
               profile.watchlist.map((item) => (

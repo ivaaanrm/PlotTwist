@@ -6,9 +6,9 @@ import { useMemo, useState } from "react"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { SwipeableFeedCard } from "@/components/Common/SwipeableFeedCard"
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   type FeedItemPublic,
   MovieDomainService,

@@ -31,7 +31,6 @@ import { useState } from "react"
 
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -43,6 +42,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   type CollectionDetailPublic,
   type CollectionItemPublicNamed,
@@ -52,8 +52,8 @@ import {
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDebounce } from "@/hooks/useDebounce"
-import { handleError } from "@/utils"
 import { formatTmdbRating } from "@/lib/media"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/collections/$collectionId")({
   component: CollectionDetail,
@@ -226,7 +226,9 @@ function InviteDialog({
                   className="flex items-center gap-3 rounded-lg border px-3 py-2"
                 >
                   <UserAvatar
-                    displayName={member.user_full_name || member.user_email || "?"}
+                    displayName={
+                      member.user_full_name || member.user_email || "?"
+                    }
                     className="size-7"
                     iconSizeClass="size-3"
                   />
@@ -342,7 +344,8 @@ function CollectionDetail() {
 
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
-  const [selectedItem, setSelectedItem] = useState<CollectionItemPublicNamed | null>(null)
+  const [selectedItem, setSelectedItem] =
+    useState<CollectionItemPublicNamed | null>(null)
 
   const collectionQuery = useQuery({
     queryKey: ["collections", collectionId],

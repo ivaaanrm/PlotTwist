@@ -872,7 +872,9 @@ export const MovieDomainService = {
     })
   },
 
-  getFollowStatus(data: { userId: string }): CancelablePromise<FollowPublic | null> {
+  getFollowStatus(data: {
+    userId: string
+  }): CancelablePromise<FollowPublic | null> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/follows/status/{user_id}",
@@ -907,7 +909,9 @@ export const MovieDomainService = {
     })
   },
 
-  readUserByUsername(data: { username: string }): CancelablePromise<UserPublic> {
+  readUserByUsername(data: {
+    username: string
+  }): CancelablePromise<UserPublic> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/users/by-username/{username}",
@@ -919,7 +923,9 @@ export const MovieDomainService = {
     })
   },
 
-  getUserProfileByUsername(data: { username: string }): CancelablePromise<UserProfile> {
+  getUserProfileByUsername(data: {
+    username: string
+  }): CancelablePromise<UserProfile> {
     const promise = __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/users/by-username/{username}/profile",

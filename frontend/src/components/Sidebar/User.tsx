@@ -5,8 +5,6 @@ import {
   Settings,
   User as UserIcon,
 } from "lucide-react"
-
-import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import useAuth from "@/hooks/useAuth"
 
 interface UserInfoProps {
@@ -71,7 +70,11 @@ export function User({ user }: { user: any }) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               data-testid="user-menu"
             >
-              <UserInfo fullName={user?.full_name} email={user?.email} avatar={user?.avatar} />
+              <UserInfo
+                fullName={user?.full_name}
+                email={user?.email}
+                avatar={user?.avatar}
+              />
               <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -82,7 +85,11 @@ export function User({ user }: { user: any }) {
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <UserInfo fullName={user?.full_name} email={user?.email} avatar={user?.avatar} />
+              <UserInfo
+                fullName={user?.full_name}
+                email={user?.email}
+                avatar={user?.avatar}
+              />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <RouterLink to="/profile" onClick={handleMenuClick}>

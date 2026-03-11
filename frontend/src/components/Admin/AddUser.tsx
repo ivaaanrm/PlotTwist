@@ -145,7 +145,12 @@ const AddUser = () => {
                       Username <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Username" type="text" {...field} required />
+                      <Input
+                        placeholder="Username"
+                        type="text"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

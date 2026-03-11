@@ -1,44 +1,40 @@
-import { Clock, Star } from "lucide-react"
+import { Check, Clock, FolderPlus, Plus, Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { LoadingButton } from "@/components/ui/loading-button"
+import type { CollectionPublic } from "@/features/movie-domain/api"
 import type { RecommendationTicket } from "@/features/recommendations/api"
 import { getPosterUrl } from "@/features/recommendations/api"
-
-// Deterministic barcode-like pattern from tmdb_id
-function Barcode({ seed }: { seed: number }) {
-  const bars: number[] = []
-  let s = seed
-  for (let i = 0; i < 30; i++) {
-    s = ((s * 1103515245 + 12345) & 0x7fffffff) % 1000
-    bars.push(s)
-  }
-  return (
-    <svg
-      width="120"
-      height="32"
-      viewBox="0 0 120 32"
-      className="opacity-40"
-      aria-hidden
-    >
-      {bars.map((v, i) => (
-        <rect
-          key={i}
-          x={i * 4}
-          y={0}
-          width={v < 500 ? 2 : 1}
-          height={v < 250 ? 32 : 20}
-          fill="currentColor"
-        />
-      ))}
-    </svg>
-  )
-}
 
 type Props = {
   ticket: RecommendationTicket
   style?: React.CSSProperties
+  isInWatchlist?: boolean
+  isWatched?: boolean
+  collections?: CollectionPublic[]
+  onAddToWatchlist?: () => void
+  onAddToCollection?: (collectionId: string) => void
+  isActionLoading?: boolean
+  onSelectTicket?: () => void
 }
 
-export function TicketCard({ ticket, style }: Props) {
+export function TicketCard({
+  ticket,
+  style,
+  isInWatchlist,
+  isWatched,
+  collections = [],
+  onAddToWatchlist,
+  onAddToCollection,
+  isActionLoading,
+  onSelectTicket,
+}: Props) {
   const posterUrl = getPosterUrl(ticket.poster_path)
   const ratingDisplay = ticket.tmdb_rating
     ? ticket.tmdb_rating.toFixed(1)
@@ -53,7 +49,18 @@ export function TicketCard({ ticket, style }: Props) {
       className="w-full max-w-md mx-auto rounded-2xl overflow-hidden border bg-card shadow-md animate-in fade-in slide-in-from-bottom-6 duration-500"
     >
       {/* Top half: poster + metadata */}
-      <div className="flex gap-0">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onSelectTicket}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            onSelectTicket?.()
+          }
+        }}
+        className="flex gap-0 group cursor-pointer hover:bg-muted/30 transition-colors"
+      >
         {/* Poster */}
         <div className="w-28 shrink-0 bg-muted">
           {posterUrl ? (
@@ -73,7 +80,7 @@ export function TicketCard({ ticket, style }: Props) {
         {/* Info */}
         <div className="flex-1 flex flex-col gap-2 p-4">
           <div>
-            <h3 className="font-bold text-base leading-tight line-clamp-2">
+            <h3 className="font-bold text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors">
               {ticket.title}
             </h3>
             <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
@@ -99,14 +106,15 @@ export function TicketCard({ ticket, style }: Props) {
 
           <div className="flex flex-wrap gap-1 mt-auto">
             {ticket.genres.slice(0, 3).map((g) => (
-              <Badge key={g} variant="secondary" className="text-xs px-1.5 py-0">
+              <Badge
+                key={g}
+                variant="secondary"
+                className="text-xs px-1.5 py-0"
+              >
                 {g}
               </Badge>
             ))}
-            <Badge
-              variant="outline"
-              className="text-xs px-1.5 py-0 capitalize"
-            >
+            <Badge variant="outline" className="text-xs px-1.5 py-0 capitalize">
               {ticket.media_type === "series" ? "Series" : "Movie"}
             </Badge>
           </div>
@@ -120,12 +128,65 @@ export function TicketCard({ ticket, style }: Props) {
         <div className="w-full border-t-2 border-dashed border-border" />
       </div>
 
-      {/* Bottom half: barcode + reason */}
-      <div className="flex flex-col gap-2 px-4 pt-5 pb-4">
-        <Barcode seed={ticket.tmdb_id} />
+      {/* Bottom half: reason + actions */}
+      <div className="flex flex-col gap-3 px-4 pt-5 pb-5">
         <p className="text-xs text-muted-foreground leading-relaxed italic">
-          {ticket.reason}
+          "{ticket.reason}"
         </p>
+
+        <div className="flex items-center gap-2 mt-1">
+          <LoadingButton
+            variant="outline"
+            size="sm"
+            loading={isActionLoading && !collections.length} // crude approximation
+            disabled={isInWatchlist || isWatched || isActionLoading}
+            onClick={onAddToWatchlist}
+            className="flex-1 rounded-full text-[11px] h-8"
+          >
+            {isInWatchlist ? (
+              <>
+                <Clock className="size-3.5 mr-1" />
+                In Watchlist
+              </>
+            ) : isWatched ? (
+              <>
+                <Check className="size-3.5 mr-1" />
+                Watched
+              </>
+            ) : (
+              <>
+                <Plus className="size-3.5 mr-1" />
+                Watchlist
+              </>
+            )}
+          </LoadingButton>
+
+          {collections.length > 0 && onAddToCollection && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-full h-8 w-10 p-0 shrink-0"
+                  title="Add to collection"
+                  disabled={isActionLoading}
+                >
+                  <FolderPlus className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {collections.map((col) => (
+                  <DropdownMenuItem
+                    key={col.id}
+                    onClick={() => onAddToCollection(col.id)}
+                  >
+                    {col.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     </div>
   )

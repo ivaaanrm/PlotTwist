@@ -1,12 +1,36 @@
-import { TicketCard } from "./TicketCard"
+import type { CollectionPublic } from "@/features/movie-domain/api"
 import type { RecommendationTicket } from "@/features/recommendations/api"
+import { TicketCard } from "./TicketCard"
 
 type Props = {
   tickets: RecommendationTicket[]
   onRestart: () => void
+  watchlistByTmdbId: Map<number, string>
+  watchedByTmdbId: Map<number, string>
+  collections: CollectionPublic[]
+  onAddToWatchlist: (tmdbId: number, mediaType: "movie" | "series") => void
+  onAddToCollection: (
+    collectionId: string,
+    tmdbId: number,
+    mediaType: "movie" | "series",
+  ) => void
+  isActionLoading: boolean
+  actionTmdbId: number | null
+  onSelectTicket: (ticket: RecommendationTicket) => void
 }
 
-export function TicketReveal({ tickets, onRestart }: Props) {
+export function TicketReveal({
+  tickets,
+  onRestart,
+  watchlistByTmdbId,
+  watchedByTmdbId,
+  collections,
+  onAddToWatchlist,
+  onAddToCollection,
+  isActionLoading,
+  actionTmdbId,
+  onSelectTicket,
+}: Props) {
   return (
     <div className="flex flex-col gap-8 w-full max-w-lg mx-auto px-4 pb-12">
       <div className="text-center">
@@ -21,7 +45,21 @@ export function TicketReveal({ tickets, onRestart }: Props) {
           <TicketCard
             key={ticket.tmdb_id}
             ticket={ticket}
-            style={{ animationDelay: `${i * 150}ms`, animationFillMode: "both" }}
+            style={{
+              animationDelay: `${i * 150}ms`,
+              animationFillMode: "both",
+            }}
+            isInWatchlist={watchlistByTmdbId.has(ticket.tmdb_id)}
+            isWatched={watchedByTmdbId.has(ticket.tmdb_id)}
+            collections={collections}
+            onAddToWatchlist={() =>
+              onAddToWatchlist(ticket.tmdb_id, ticket.media_type)
+            }
+            onAddToCollection={(colId) =>
+              onAddToCollection(colId, ticket.tmdb_id, ticket.media_type)
+            }
+            isActionLoading={isActionLoading && actionTmdbId === ticket.tmdb_id}
+            onSelectTicket={() => onSelectTicket(ticket)}
           />
         ))}
       </div>

@@ -6,7 +6,6 @@ import { AvatarPickerDialog } from "@/components/Common/AvatarPickerDialog"
 import { MediaDetailDialog } from "@/components/Common/MediaDetailDialog"
 import { MoviePoster } from "@/components/Common/MoviePoster"
 import { SwipeableDeleteCard } from "@/components/Common/SwipeableDeleteCard"
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   type FeedItemPublic,
   type FollowWithUserPublic,
@@ -321,7 +321,9 @@ function FollowUserRow({
       />
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{displayName}</p>
-        <p className="text-xs text-muted-foreground truncate">@{item.user.username}</p>
+        <p className="text-xs text-muted-foreground truncate">
+          @{item.user.username}
+        </p>
       </div>
     </Link>
   )

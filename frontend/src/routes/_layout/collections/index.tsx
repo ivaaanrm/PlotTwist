@@ -4,7 +4,6 @@ import { EllipsisVertical, Layers, Plus, Trash2, Users } from "lucide-react"
 import { useState } from "react"
 
 import { MoviePoster } from "@/components/Common/MoviePoster"
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -25,6 +24,7 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   type CollectionPublic,
   MovieDomainService,
@@ -132,7 +132,9 @@ function CollectionCard({
               {collection.members.slice(0, 3).map((member) => (
                 <UserAvatar
                   key={member.id}
-                  displayName={member.user_full_name || member.user_email || "?"}
+                  displayName={
+                    member.user_full_name || member.user_email || "?"
+                  }
                   className="size-5 border-2 border-card"
                   iconSizeClass="size-2.5"
                 />

@@ -6,7 +6,6 @@ import { z } from "zod"
 
 import { UsersService, type UserUpdateMe } from "@/client"
 import { AvatarPickerDialog } from "@/components/Common/AvatarPickerDialog"
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { cn } from "@/lib/utils"
@@ -108,7 +108,9 @@ const UserInformation = () => {
         </button>
         <div>
           <p className="text-sm font-medium">{profileName}</p>
-          <p className="text-xs text-muted-foreground">Click to change avatar</p>
+          <p className="text-xs text-muted-foreground">
+            Click to change avatar
+          </p>
         </div>
       </div>
 

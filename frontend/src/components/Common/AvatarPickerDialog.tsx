@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/dialog"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { UserAvatar } from "@/components/ui/user-avatar"
-import { AVATARS } from "@/lib/avatars"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { AVATARS } from "@/lib/avatars"
 import { cn } from "@/lib/utils"
+import { handleError } from "@/utils"
 
 interface AvatarPickerDialogProps {
   open: boolean

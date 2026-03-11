@@ -97,7 +97,9 @@ export const AVATAR_MAP: Record<string, AvatarDef> = Object.fromEntries(
   AVATARS.map((a) => [a.id, a]),
 )
 
-export function getAvatar(id: string | null | undefined): AvatarDef | undefined {
+export function getAvatar(
+  id: string | null | undefined,
+): AvatarDef | undefined {
   if (!id) return undefined
   return AVATAR_MAP[id]
 }

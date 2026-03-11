@@ -6,13 +6,13 @@ import { Logo } from "@/components/Common/Logo"
 import { MobileBottomNav } from "@/components/Common/MobileBottomNav"
 import { NotificationsMenu } from "@/components/Common/NotificationsMenu"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout")({
@@ -60,7 +60,9 @@ function Layout() {
               <Link to="/profile">
                 <UserAvatar
                   avatarId={currentUser?.avatar}
-                  displayName={currentUser?.full_name || currentUser?.email || "User"}
+                  displayName={
+                    currentUser?.full_name || currentUser?.email || "User"
+                  }
                   className="size-7"
                   iconSizeClass="size-3"
                   fallbackClassName="bg-primary/10 text-primary text-xs font-medium"
@@ -83,7 +85,9 @@ function Layout() {
               <Link to="/profile">
                 <UserAvatar
                   avatarId={currentUser?.avatar}
-                  displayName={currentUser?.full_name || currentUser?.email || "User"}
+                  displayName={
+                    currentUser?.full_name || currentUser?.email || "User"
+                  }
                   className="size-8"
                   iconSizeClass="size-3.5"
                   fallbackClassName="bg-primary/10 text-primary text-xs font-medium"

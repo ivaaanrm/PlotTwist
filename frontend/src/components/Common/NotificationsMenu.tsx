@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Bell, Check, Layers, X } from "lucide-react"
 import { useState } from "react"
-
-import { UserAvatar } from "@/components/ui/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -11,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   type CollectionInvitationPublic,
   MovieDomainService,
