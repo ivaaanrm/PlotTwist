@@ -24,8 +24,8 @@ from app.recommendations.session import (
     msgs_to_dicts,
 )
 
-TOTAL_STEPS = 5
-MAX_STEPS = 6
+TOTAL_STEPS = 6
+MAX_STEPS = 8
 
 
 def _build_user_context(db: Session, user_id: UUID) -> tuple[str, list[int]]:
