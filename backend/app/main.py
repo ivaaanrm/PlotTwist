@@ -11,6 +11,7 @@ from app.config import settings
 from app.exceptions import AppException
 from app.feed.router import router as feed_router
 from app.media.router import router as media_router
+from app.recommendations.router import router as recommendations_router
 from app.system.router import router as system_router
 from app.users.follows.router import router as follows_router
 from app.users.router import router as users_router
@@ -48,6 +49,7 @@ api_router.include_router(media_router)
 api_router.include_router(collections_router)
 api_router.include_router(follows_router)
 api_router.include_router(feed_router)
+api_router.include_router(recommendations_router)
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

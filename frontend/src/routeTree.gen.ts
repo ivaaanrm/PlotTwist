@@ -17,6 +17,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSocialRouteImport } from './routes/_layout/social'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutRecommendRouteImport } from './routes/_layout/recommend'
 import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutDiscoverRouteImport } from './routes/_layout/discover'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
@@ -63,6 +64,11 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutRecommendRoute = LayoutRecommendRouteImport.update({
+  id: '/recommend',
+  path: '/recommend',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutProfileRoute = LayoutProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof LayoutAdminRoute
   '/discover': typeof LayoutDiscoverRoute
   '/profile': typeof LayoutProfileRoute
+  '/recommend': typeof LayoutRecommendRoute
   '/settings': typeof LayoutSettingsRoute
   '/social': typeof LayoutSocialRoute
   '/collections/$collectionId': typeof LayoutCollectionsCollectionIdRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/admin': typeof LayoutAdminRoute
   '/discover': typeof LayoutDiscoverRoute
   '/profile': typeof LayoutProfileRoute
+  '/recommend': typeof LayoutRecommendRoute
   '/settings': typeof LayoutSettingsRoute
   '/social': typeof LayoutSocialRoute
   '/': typeof LayoutIndexRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/discover': typeof LayoutDiscoverRoute
   '/_layout/profile': typeof LayoutProfileRoute
+  '/_layout/recommend': typeof LayoutRecommendRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/social': typeof LayoutSocialRoute
   '/_layout/': typeof LayoutIndexRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/discover'
     | '/profile'
+    | '/recommend'
     | '/settings'
     | '/social'
     | '/collections/$collectionId'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/discover'
     | '/profile'
+    | '/recommend'
     | '/settings'
     | '/social'
     | '/'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/_layout/admin'
     | '/_layout/discover'
     | '/_layout/profile'
+    | '/_layout/recommend'
     | '/_layout/settings'
     | '/_layout/social'
     | '/_layout/'
@@ -257,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/recommend': {
+      id: '/_layout/recommend'
+      path: '/recommend'
+      fullPath: '/recommend'
+      preLoaderRoute: typeof LayoutRecommendRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/profile': {
       id: '/_layout/profile'
       path: '/profile'
@@ -306,6 +325,7 @@ interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutDiscoverRoute: typeof LayoutDiscoverRoute
   LayoutProfileRoute: typeof LayoutProfileRoute
+  LayoutRecommendRoute: typeof LayoutRecommendRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutSocialRoute: typeof LayoutSocialRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
@@ -318,6 +338,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutDiscoverRoute: LayoutDiscoverRoute,
   LayoutProfileRoute: LayoutProfileRoute,
+  LayoutRecommendRoute: LayoutRecommendRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutSocialRoute: LayoutSocialRoute,
   LayoutIndexRoute: LayoutIndexRoute,
