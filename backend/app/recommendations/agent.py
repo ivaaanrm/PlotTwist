@@ -85,7 +85,6 @@ def _sanitize_tool_args(args: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-
 class _PickedItem(BaseModel):
     tmdb_id: int
     media_type: str
@@ -115,10 +114,14 @@ async def _call_tmdb_discover(
     if genre_ids:
         params["with_genres"] = ",".join(str(g) for g in genre_ids)
     if year_from:
-        key = "primary_release_date.gte" if tmdb_type == "movie" else "first_air_date.gte"
+        key = (
+            "primary_release_date.gte" if tmdb_type == "movie" else "first_air_date.gte"
+        )
         params[key] = f"{year_from}-01-01"
     if year_to:
-        key = "primary_release_date.lte" if tmdb_type == "movie" else "first_air_date.lte"
+        key = (
+            "primary_release_date.lte" if tmdb_type == "movie" else "first_air_date.lte"
+        )
         params[key] = f"{year_to}-12-31"
     if min_rating:
         params["vote_average.gte"] = min_rating
@@ -252,7 +255,9 @@ async def run_discovery(
                 tool_result = await discover_tool.ainvoke(clean_args)
             except Exception as exc:  # noqa: BLE001
                 tool_result = f"Tool error: {exc}"
-            messages.append(ToolMessage(content=str(tool_result), tool_call_id=tc["id"]))
+            messages.append(
+                ToolMessage(content=str(tool_result), tool_call_id=tc["id"])
+            )
 
     # Get structured final picks
     pick_prompt = (
@@ -263,7 +268,6 @@ async def run_discovery(
         "and a 1-2 sentence reason referencing the user's answers."
     )
     messages.append(HumanMessage(content=pick_prompt))
-
     # Try structured output first; fall back to raw JSON parsing for Ollama
     discovery_result: _DiscoveryResult | None = None
     try:

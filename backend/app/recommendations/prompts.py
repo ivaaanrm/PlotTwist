@@ -11,7 +11,7 @@ Rules:
 - Avoid repeating similar questions in the same conversation
 - Do NOT ask questions that reveal or imply spoilers
 - Never ask about endings, plot twists, character deaths, or story outcomes
-- After at least 4 questions, set "ready": true when you have enough to make great recommendations
+- After at least 6 questions, set "ready": true when you have enough to make great recommendations
 - ONLY return valid JSON — no prose, no markdown, no code fences
 
 Important:
