@@ -22,9 +22,9 @@ from app.users.follows.schemas import (
     FollowRequestsPublic,
     FollowsPublic,
     FollowStatus,
+    FollowsWithUsersPublic,
     FollowUpdate,
     FollowWithUserPublic,
-    FollowsWithUsersPublic,
     Message,
     UserPublic,
 )
@@ -177,7 +177,9 @@ def list_following(
     )
     data: list[FollowWithUserPublic] = []
     for follow in items:
-        user = users_service.get_user_by_id(session=session, user_id=follow.following_id)
+        user = users_service.get_user_by_id(
+            session=session, user_id=follow.following_id
+        )
         if user:
             data.append(
                 FollowWithUserPublic(

@@ -3,6 +3,7 @@ import {
   Home,
   Layers,
   Search,
+  Sparkles,
   UserRoundPlus,
   Users,
 } from "lucide-react"
@@ -23,6 +24,7 @@ const baseItems: Item[] = [
   { icon: Home, title: "Home", path: "/" },
   { icon: Search, title: "Discover", path: "/discover" },
   { icon: Layers, title: "Collections", path: "/collections" },
+  { icon: Sparkles, title: "For You", path: "/recommend" },
   { icon: UserRoundPlus, title: "Social", path: "/social" },
   { icon: CircleUser, title: "Profile", path: "/profile" },
 ]
