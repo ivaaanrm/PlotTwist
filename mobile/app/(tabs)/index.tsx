@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { View, Text, FlatList, RefreshControl } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 
 import { api } from "@/lib/api-client";
 import type {
@@ -18,6 +19,30 @@ import { MediaDetailSheet } from "@/components/MediaDetailSheet";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { SwipeActionCard } from "@/components/SwipeActionCard";
+
+function SkeletonCard() {
+  return (
+    <View
+      style={{
+        height: 84,
+        borderRadius: 16,
+        backgroundColor: "#18181b",
+        borderWidth: 1,
+        borderColor: "#27272a",
+      }}
+    />
+  );
+}
+
+function FeedSkeleton() {
+  return (
+    <View style={{ padding: 16, gap: 12, paddingTop: 8 }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <SkeletonCard key={i} />
+      ))}
+    </View>
+  );
+}
 
 export default function FeedScreen() {
   const router = useRouter();
@@ -116,7 +141,11 @@ export default function FeedScreen() {
   });
 
   const addToCollectionMutation = useMutation({
-    mutationFn: (payload: { collectionId: string; tmdbId: number; mediaType: MediaType }) =>
+    mutationFn: (payload: {
+      collectionId: string;
+      tmdbId: number;
+      mediaType: MediaType;
+    }) =>
       api(`/collections/named/${payload.collectionId}/items`, {
         method: "POST",
         body: {
@@ -136,97 +165,111 @@ export default function FeedScreen() {
   const selectedTmdbId = selectedMedia?.tmdb_id ?? null;
   const selectedMediaType = (selectedMedia?.media_type ?? "movie") as MediaType;
 
+  const firstName = user?.full_name?.split(" ")[0] ?? user?.username ?? "";
+
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <FlatList
-        data={feedItems}
-        keyExtractor={(item) => item.collection_item.id}
-        renderItem={({ item }) => (
-          <View className="px-4 pt-1 pb-2">
-            <SwipeActionCard
-              disableSwipeRight={
-                typeof item.collection_item.media?.tmdb_id === "number" &&
-                (watchlistTmdbIds.has(item.collection_item.media.tmdb_id) ||
-                  watchedRatings.has(item.collection_item.media.tmdb_id))
-              }
-              disableSwipeLeft={
-                typeof item.collection_item.media?.tmdb_id === "number" &&
-                watchedRatings.has(item.collection_item.media.tmdb_id)
-              }
-              onSwipeRight={() => {
-                const tmdbId = item.collection_item.media?.tmdb_id;
-                const mediaType = (item.collection_item.media?.media_type ?? "movie") as MediaType;
-                if (typeof tmdbId !== "number") return;
-                addToWatchlistMutation.mutate({
-                  tmdbId,
-                  mediaType,
-                });
-              }}
-              onSwipeLeft={() => {
-                setOpenRatingOnSelect(true);
-                setSelectedItem(item);
-              }}
-            >
-              <FeedTicketCard
-                item={item}
-                currentUserId={user?.id}
-                currentUserRating={
-                  item.collection_item.media?.tmdb_id
-                    ? watchedRatings.get(item.collection_item.media.tmdb_id)
-                    : undefined
-                }
-                onPress={() => {
-                  setOpenRatingOnSelect(false);
-                  setSelectedItem(item);
-                }}
-              />
-            </SwipeActionCard>
-          </View>
-        )}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-        }
-        ListHeaderComponent={
-          <View className="px-4 pt-4 pb-2">
+      {isLoading ? (
+        <>
+          <View className="px-4 pt-5 pb-3">
             <Text className="text-xl font-bold text-foreground">
-              Welcome back{user?.full_name ? `, ${user.full_name}` : ""}
+              Hey, {firstName}
             </Text>
             <Text className="text-sm text-muted-foreground">
               Recent activity from you and your friends
             </Text>
-            {isError ? (
-              <View className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3">
-                <Text className="text-sm text-destructive">
-                  Could not load your feed.
-                </Text>
-              </View>
-            ) : null}
           </View>
-        }
-        ListEmptyComponent={
-          <View className="flex-1 items-center justify-center px-6 pt-16">
-            <Text className="text-lg font-semibold text-foreground mb-2">
-              {isLoading ? "Loading..." : "Your feed is empty"}
-            </Text>
-            {!isLoading ? (
-              <Text className="text-sm text-muted-foreground text-center mb-6">
+          <FeedSkeleton />
+        </>
+      ) : (
+        <FlatList
+          data={feedItems}
+          keyExtractor={(item) => item.collection_item.id}
+          renderItem={({ item }) => (
+            <View className="px-4 pt-1 pb-1">
+              <SwipeActionCard
+                disableSwipeRight={
+                  typeof item.collection_item.media?.tmdb_id === "number" &&
+                  (watchlistTmdbIds.has(item.collection_item.media.tmdb_id) ||
+                    watchedRatings.has(item.collection_item.media.tmdb_id))
+                }
+                disableSwipeLeft={
+                  typeof item.collection_item.media?.tmdb_id === "number" &&
+                  watchedRatings.has(item.collection_item.media.tmdb_id)
+                }
+                onSwipeRight={() => {
+                  const tmdbId = item.collection_item.media?.tmdb_id;
+                  const mediaType = (
+                    item.collection_item.media?.media_type ?? "movie"
+                  ) as MediaType;
+                  if (typeof tmdbId !== "number") return;
+                  addToWatchlistMutation.mutate({ tmdbId, mediaType });
+                }}
+                onSwipeLeft={() => {
+                  setOpenRatingOnSelect(true);
+                  setSelectedItem(item);
+                }}
+              >
+                <FeedTicketCard
+                  item={item}
+                  currentUserId={user?.id}
+                  currentUserRating={
+                    item.collection_item.media?.tmdb_id
+                      ? watchedRatings.get(item.collection_item.media.tmdb_id)
+                      : undefined
+                  }
+                  onPress={() => {
+                    setOpenRatingOnSelect(false);
+                    setSelectedItem(item);
+                  }}
+                />
+              </SwipeActionCard>
+            </View>
+          )}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+          }
+          ListHeaderComponent={
+            <View className="px-4 pt-5 pb-3">
+              <Text className="text-xl font-bold text-foreground">
+                Hey, {firstName}
+              </Text>
+              <Text className="text-sm text-muted-foreground">
+                Recent activity from you and your friends
+              </Text>
+              {isError ? (
+                <View className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3">
+                  <Text className="text-sm text-destructive">
+                    Could not load your feed.
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          }
+          ListEmptyComponent={
+            <View className="flex-1 items-center justify-center px-6 pt-16">
+              <Text className="text-lg font-semibold text-foreground mb-2">
+                Your feed is empty
+              </Text>
+              <Text className="text-sm text-muted-foreground text-center mb-8">
                 Watch some movies or follow friends to see activity here.
               </Text>
-            ) : null}
-            {!isLoading ? (
               <View className="w-full gap-3">
                 <Button onPress={() => router.push("/(tabs)/discover")}>
                   Discover Movies
                 </Button>
-                <Button variant="outline" onPress={() => router.push("/(tabs)/social")}>
+                <Button
+                  variant="outline"
+                  onPress={() => router.push("/(tabs)/social")}
+                >
                   Find Friends
                 </Button>
               </View>
-            ) : null}
-          </View>
-        }
-        contentContainerClassName="pb-6"
-      />
+            </View>
+          }
+          contentContainerStyle={{ paddingBottom: 24 }}
+        />
+      )}
 
       <MediaDetailSheet
         isOpen={selectedItem !== null}
@@ -239,10 +282,12 @@ export default function FeedScreen() {
         fallbackReleaseDate={selectedMedia?.release_date ?? null}
         fallbackTmdbRating={selectedMedia?.tmdb_rating ?? null}
         isInWatchlist={
-          typeof selectedTmdbId === "number" && watchlistTmdbIds.has(selectedTmdbId)
+          typeof selectedTmdbId === "number" &&
+          watchlistTmdbIds.has(selectedTmdbId)
         }
         isWatched={
-          typeof selectedTmdbId === "number" && watchedRatings.has(selectedTmdbId)
+          typeof selectedTmdbId === "number" &&
+          watchedRatings.has(selectedTmdbId)
         }
         watchedRating={
           typeof selectedTmdbId === "number"
@@ -252,7 +297,10 @@ export default function FeedScreen() {
         collections={collections?.data ?? []}
         onAddToWatchlist={() => {
           if (typeof selectedTmdbId !== "number") return;
-          addToWatchlistMutation.mutate({ tmdbId: selectedTmdbId, mediaType: selectedMediaType });
+          addToWatchlistMutation.mutate({
+            tmdbId: selectedTmdbId,
+            mediaType: selectedMediaType,
+          });
         }}
         onMarkWatched={(rating) => {
           if (typeof selectedTmdbId !== "number") return;
