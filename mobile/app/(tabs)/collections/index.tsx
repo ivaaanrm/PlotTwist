@@ -8,6 +8,7 @@ import { Image } from "expo-image";
 import { api } from "@/lib/api-client";
 import type { CollectionListPublic, CollectionPublic } from "@/lib/types";
 import { posterUrl } from "@/lib/image-urls";
+import { logImageError } from "@/lib/image-debug";
 
 function CollectionCard({ collection }: { collection: CollectionPublic }) {
   const router = useRouter();
@@ -23,6 +24,13 @@ function CollectionCard({ collection }: { collection: CollectionPublic }) {
           source={{ uri: posterUrl(firstPoster, "w185")! }}
           className="w-14 h-20 rounded-md bg-muted"
           contentFit="cover"
+          onError={(error) =>
+            logImageError(
+              "collection cover",
+              posterUrl(firstPoster, "w185"),
+              error,
+            )
+          }
         />
       ) : (
         <View className="w-14 h-20 rounded-md bg-muted items-center justify-center">

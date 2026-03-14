@@ -4,12 +4,13 @@ import {
   Text,
   type PressableProps,
 } from "react-native";
+import type { ReactNode } from "react";
 
 type ButtonVariant = "default" | "secondary" | "destructive" | "outline" | "ghost";
 
 type ButtonProps = PressableProps & {
   variant?: ButtonVariant;
-  children: string;
+  children: ReactNode;
   loading?: boolean;
 };
 
@@ -49,11 +50,13 @@ export function Button({
           className="mr-2"
         />
       ) : null}
-      <Text
-        className={`text-base font-semibold ${textClasses[variant]}`}
-      >
-        {children}
-      </Text>
+      {typeof children === "string" ? (
+        <Text className={`text-base font-semibold ${textClasses[variant]}`}>
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
     </Pressable>
   );
 }

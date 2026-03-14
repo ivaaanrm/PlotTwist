@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api-client";
 import { posterUrl } from "@/lib/image-urls";
 import type { WatchedMoviesPublic, WatchlistItemsPublic } from "@/lib/types";
+import { logImageError } from "@/lib/image-debug";
 
 type Tab = "watched" | "watchlist";
 
@@ -19,7 +20,7 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<Tab>("watched");
 
   const { data: watched } = useQuery({
-    queryKey: ["watched"],
+    queryKey: ["movies", "watched"],
     queryFn: () =>
       api<WatchedMoviesPublic>("/collections/watched", {
         query: { skip: 0, limit: 100 },
@@ -27,7 +28,7 @@ export default function ProfileScreen() {
   });
 
   const { data: watchlist } = useQuery({
-    queryKey: ["watchlist"],
+    queryKey: ["movies", "watchlist"],
     queryFn: () =>
       api<WatchlistItemsPublic>("/collections/watchlist", {
         query: { skip: 0, limit: 100 },
@@ -105,6 +106,13 @@ export default function ProfileScreen() {
                 source={{ uri: posterUrl(item.poster, "w185")! }}
                 className="aspect-[2/3] w-full rounded-md bg-muted"
                 contentFit="cover"
+                onError={(error) =>
+                  logImageError(
+                    "profile poster",
+                    posterUrl(item.poster, "w185"),
+                    error,
+                  )
+                }
               />
             ) : (
               <View className="aspect-[2/3] w-full rounded-md bg-muted items-center justify-center">

@@ -7,6 +7,7 @@ import { Image } from "expo-image";
 import { api } from "@/lib/api-client";
 import type { CollectionDetailPublic } from "@/lib/types";
 import { posterUrl } from "@/lib/image-urls";
+import { logImageError } from "@/lib/image-debug";
 
 export default function CollectionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,6 +53,13 @@ export default function CollectionDetailScreen() {
                 source={{ uri: posterUrl(item.media.poster_path, "w185")! }}
                 className="aspect-[2/3] w-full rounded-md bg-muted"
                 contentFit="cover"
+                onError={(error) =>
+                  logImageError(
+                    "collection item",
+                    posterUrl(item.media.poster_path, "w185"),
+                    error,
+                  )
+                }
               />
             ) : (
               <View className="aspect-[2/3] w-full rounded-md bg-muted items-center justify-center">
