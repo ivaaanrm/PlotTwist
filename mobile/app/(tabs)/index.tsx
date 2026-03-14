@@ -17,12 +17,14 @@ import { FeedTicketCard } from "@/components/FeedTicketCard";
 import { MediaDetailSheet } from "@/components/MediaDetailSheet";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
+import { SwipeActionCard } from "@/components/SwipeActionCard";
 
 export default function FeedScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [selectedItem, setSelectedItem] = useState<FeedItemPublic | null>(null);
+  const [openRatingOnSelect, setOpenRatingOnSelect] = useState(false);
 
   const {
     data: feed,
@@ -135,22 +137,50 @@ export default function FeedScreen() {
   const selectedMediaType = (selectedMedia?.media_type ?? "movie") as MediaType;
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background">
       <FlatList
         data={feedItems}
         keyExtractor={(item) => item.collection_item.id}
         renderItem={({ item }) => (
           <View className="px-4 py-2">
-            <FeedTicketCard
-              item={item}
-              currentUserId={user?.id}
-              currentUserRating={
-                item.collection_item.media?.tmdb_id
-                  ? watchedRatings.get(item.collection_item.media.tmdb_id)
-                  : undefined
+            <SwipeActionCard
+              disableSwipeRight={
+                typeof item.collection_item.media?.tmdb_id === "number" &&
+                (watchlistTmdbIds.has(item.collection_item.media.tmdb_id) ||
+                  watchedRatings.has(item.collection_item.media.tmdb_id))
               }
-              onPress={() => setSelectedItem(item)}
-            />
+              disableSwipeLeft={
+                typeof item.collection_item.media?.tmdb_id === "number" &&
+                watchedRatings.has(item.collection_item.media.tmdb_id)
+              }
+              onSwipeRight={() => {
+                const tmdbId = item.collection_item.media?.tmdb_id;
+                const mediaType = (item.collection_item.media?.media_type ?? "movie") as MediaType;
+                if (typeof tmdbId !== "number") return;
+                addToWatchlistMutation.mutate({
+                  tmdbId,
+                  mediaType,
+                });
+              }}
+              onSwipeLeft={() => {
+                setOpenRatingOnSelect(true);
+                setSelectedItem(item);
+              }}
+            >
+              <FeedTicketCard
+                item={item}
+                currentUserId={user?.id}
+                currentUserRating={
+                  item.collection_item.media?.tmdb_id
+                    ? watchedRatings.get(item.collection_item.media.tmdb_id)
+                    : undefined
+                }
+                onPress={() => {
+                  setOpenRatingOnSelect(false);
+                  setSelectedItem(item);
+                }}
+              />
+            </SwipeActionCard>
           </View>
         )}
         refreshControl={
@@ -200,6 +230,7 @@ export default function FeedScreen() {
 
       <MediaDetailSheet
         isOpen={selectedItem !== null}
+        initialShowRating={openRatingOnSelect}
         mediaId={selectedTmdbId}
         mediaType={selectedMediaType}
         fallbackTitle={selectedMedia?.title ?? undefined}
@@ -239,7 +270,10 @@ export default function FeedScreen() {
             mediaType: selectedMediaType,
           });
         }}
-        onClose={() => setSelectedItem(null)}
+        onClose={() => {
+          setSelectedItem(null);
+          setOpenRatingOnSelect(false);
+        }}
       />
     </SafeAreaView>
   );

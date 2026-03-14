@@ -27,7 +27,7 @@ export default function CollectionDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background">
       <View className="px-4 py-3 border-b border-border">
         <Text className="text-xl font-bold text-foreground">
           {collection?.name}
@@ -56,7 +56,7 @@ export default function CollectionDetailScreen() {
                 onError={(error) =>
                   logImageError(
                     "collection item",
-                    posterUrl(item.media.poster_path, "w185"),
+                    posterUrl(item.media?.poster_path ?? "", "w185"),
                     error,
                   )
                 }

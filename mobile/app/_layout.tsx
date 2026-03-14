@@ -1,6 +1,6 @@
 import "../global.css";
 import "@/lib/nativewind";
-import { Slot } from "expo-router";
+import { Stack } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -11,7 +11,18 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <BottomSheetModalProvider>
-          <Slot />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen 
+              name="notifications" 
+              options={{ 
+                headerShown: true, 
+                title: "Notifications",
+                headerStyle: { backgroundColor: "#09090b" },
+                headerTintColor: "#fafafa",
+              }} 
+            />
+          </Stack>
         </BottomSheetModalProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

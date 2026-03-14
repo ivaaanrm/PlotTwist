@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { Calendar, FolderPlus, Plus, Star } from "lucide-react-native";
 
@@ -6,6 +6,7 @@ import type { MovieSearchResult } from "@/lib/types";
 import { posterUrl } from "@/lib/image-urls";
 import { formatDate } from "@/lib/media";
 import { logImageError } from "@/lib/image-debug";
+import { PressableScale } from "@/components/PressableScale";
 
 const AMBER = "#f59e0b";
 
@@ -38,8 +39,13 @@ export function DiscoverCard({
 
   return (
     <View className="rounded-xl border border-border bg-card overflow-hidden">
-      <Pressable onPress={onPress} className="flex-row h-32">
-        <View className="w-[86px] bg-muted">
+      <PressableScale
+        onPress={onPress}
+        className="flex-row h-[90px]"
+        scale={0.985}
+        shadow
+      >
+        <View className="w-[64px] bg-muted">
           {posterUri ? (
             <Image
               source={{ uri: posterUri }}
@@ -54,12 +60,14 @@ export function DiscoverCard({
           )}
         </View>
 
-        <View className="flex-1 p-3 justify-between">
+        <View className="flex-1 px-2.5 py-2 justify-center gap-1">
           <View>
             <View className="flex-row items-start justify-between gap-2">
-              <Text className="text-sm font-semibold text-foreground" numberOfLines={1}>
+              <Text className="text-[14px] font-semibold text-foreground" numberOfLines={1}>
                 {movie.title}
               </Text>
+            </View>
+            <View className="flex-row items-center gap-2 mt-1 flex-wrap">
               {typeof movie.rating === "number" ? (
                 <View className="flex-row items-center gap-0.5">
                   <Star size={12} color={AMBER} fill={AMBER} />
@@ -68,8 +76,6 @@ export function DiscoverCard({
                   </Text>
                 </View>
               ) : null}
-            </View>
-            <View className="flex-row items-center gap-2 mt-1">
               <View className="flex-row items-center gap-1">
                 <Calendar size={10} color="#71717a" />
                 <Text className="text-[11px] text-muted-foreground">
@@ -84,15 +90,17 @@ export function DiscoverCard({
             </View>
           </View>
         </View>
-      </Pressable>
+      </PressableScale>
 
-      <View className="flex-row gap-2 px-3 pb-3">
-        <Pressable
+      <View className="flex-row gap-2 px-3 pb-2 justify-end">
+        <PressableScale
           onPress={onAddToWatchlist}
           disabled={isInWatchlist || isWatched || isAddingToWatchlist}
           className={`flex-row items-center gap-1 px-3 py-1.5 rounded-full border ${
             isInWatchlist || isWatched ? "border-border" : "border-input"
           } ${isInWatchlist || isWatched ? "opacity-60" : ""}`}
+          scale={0.97}
+          activeOpacity={0.85}
         >
           {isAddingToWatchlist ? (
             <ActivityIndicator size="small" color="#0f172a" />
@@ -102,14 +110,16 @@ export function DiscoverCard({
           <Text className="text-[11px] font-medium text-foreground">
             {isInWatchlist ? "In Watchlist" : "Watchlist"}
           </Text>
-        </Pressable>
+        </PressableScale>
 
-        <Pressable
+        <PressableScale
           onPress={onMarkAsWatched}
           disabled={isWatched || isMarkingWatched}
           className={`flex-row items-center gap-1 px-3 py-1.5 rounded-full ${
             isWatched ? "bg-secondary" : "bg-primary"
           } ${isWatched ? "opacity-70" : ""}`}
+          scale={0.97}
+          activeOpacity={0.85}
         >
           {isMarkingWatched ? (
             <ActivityIndicator size="small" color="#fafafa" />
@@ -119,15 +129,17 @@ export function DiscoverCard({
           <Text className="text-[11px] font-medium text-primary-foreground">
             {isWatched ? "Watched" : "Watched"}
           </Text>
-        </Pressable>
+        </PressableScale>
 
         {hasCollections ? (
-          <Pressable
+          <PressableScale
             onPress={onAddToCollection}
             className="flex-row items-center justify-center px-2.5 py-1.5 rounded-full border border-input"
+            scale={0.97}
+            activeOpacity={0.85}
           >
             <FolderPlus size={12} color="#0f172a" />
-          </Pressable>
+          </PressableScale>
         ) : null}
       </View>
     </View>

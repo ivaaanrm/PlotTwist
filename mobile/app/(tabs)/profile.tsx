@@ -1,16 +1,23 @@
 import { View, Text, FlatList, Pressable } from "react-native";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { Image } from "expo-image";
 
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api-client";
-import { posterUrl } from "@/lib/image-urls";
-import type { WatchedMoviesPublic, WatchlistItemsPublic } from "@/lib/types";
-import { logImageError } from "@/lib/image-debug";
+import type {
+  FollowsWithUsersPublic,
+  WatchedMoviePublic,
+  WatchedMoviesPublic,
+  WatchlistItemPublic,
+  WatchlistItemsPublic,
+} from "@/lib/types";
+import { MediaDetailSheet } from "@/components/MediaDetailSheet";
+import { PressableScale } from "@/components/PressableScale";
+import { SwipeActionCard } from "@/components/SwipeActionCard";
+import { ProfileListRow } from "@/components/ProfileListRow";
 
 type Tab = "watched" | "watchlist";
 
@@ -18,6 +25,10 @@ export default function ProfileScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("watched");
+  const [selectedItem, setSelectedItem] = useState<
+    WatchedMoviePublic | WatchlistItemPublic | null
+  >(null);
+  const queryClient = useQueryClient();
 
   const { data: watched } = useQuery({
     queryKey: ["movies", "watched"],
@@ -35,6 +46,22 @@ export default function ProfileScreen() {
       }),
   });
 
+  const { data: followers } = useQuery({
+    queryKey: ["profile", "followers"],
+    queryFn: () =>
+      api<FollowsWithUsersPublic>("/follows/followers", {
+        query: { skip: 0, limit: 100 },
+      }),
+  });
+
+  const { data: following } = useQuery({
+    queryKey: ["profile", "following"],
+    queryFn: () =>
+      api<FollowsWithUsersPublic>("/follows/following", {
+        query: { skip: 0, limit: 100 },
+      }),
+  });
+
   const items =
     activeTab === "watched"
       ? (watched?.data ?? []).map((w) => ({
@@ -42,39 +69,80 @@ export default function ProfileScreen() {
           title: w.media?.title ?? "Unknown",
           poster: w.media?.poster_path,
           subtitle: w.rating ? `${"★".repeat(Math.round(w.rating))} ${w.rating}` : undefined,
+          media: w.media ?? null,
+          raw: w,
         }))
       : (watchlist?.data ?? []).map((w) => ({
           id: w.id,
           title: w.media?.title ?? "Unknown",
           poster: w.media?.poster_path,
           subtitle: w.media?.release_date?.slice(0, 4),
+          media: w.media ?? null,
+          raw: w,
         }));
 
+  const removeMutation = useMutation({
+    mutationFn: async (itemId: string) =>
+      api(`/collections/items/${itemId}`, { method: "DELETE" }),
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["movies", "watched"] });
+      await queryClient.invalidateQueries({ queryKey: ["movies", "watchlist"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["feed"] });
+    },
+  });
+
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <View>
-          <Text className="text-xl font-bold text-foreground">
-            {user?.full_name ?? user?.username}
+      <View className="px-4 py-4 gap-3">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-3">
+            <View className="w-12 h-12 rounded-full bg-secondary items-center justify-center">
+              <Text className="text-lg font-semibold text-secondary-foreground">
+                {(user?.full_name ?? user?.username)?.[0]?.toUpperCase()}
+              </Text>
+            </View>
+            <View>
+              <Text className="text-lg font-bold text-foreground">
+                {user?.full_name ?? user?.username}
+              </Text>
+              <Text className="text-sm text-muted-foreground">
+                @{user?.username}
+              </Text>
+            </View>
+          </View>
+          <Pressable onPress={() => router.push("/settings")}>
+            <Settings size={20} color="#0f172a" />
+          </Pressable>
+        </View>
+
+        <View className="flex-row gap-6 flex-wrap">
+          <Text className="text-sm text-muted-foreground">
+            <Text className="font-semibold text-foreground">
+              {followers?.count ?? 0}
+            </Text>{" "}
+            followers
           </Text>
           <Text className="text-sm text-muted-foreground">
-            @{user?.username}
+            <Text className="font-semibold text-foreground">
+              {following?.count ?? 0}
+            </Text>{" "}
+            following
+          </Text>
+          <Text className="text-sm text-muted-foreground">
+            <Text className="font-semibold text-foreground">
+              {watched?.count ?? 0}
+            </Text>{" "}
+            watched
+          </Text>
+          <Text className="text-sm text-muted-foreground">
+            <Text className="font-semibold text-foreground">
+              {watchlist?.count ?? 0}
+            </Text>{" "}
+            watchlist
           </Text>
         </View>
-        <Pressable onPress={() => router.push("/settings")}>
-          <Settings size={22} color="#fafafa" />
-        </Pressable>
-      </View>
-
-      {/* Stats */}
-      <View className="flex-row px-4 pb-3 gap-6">
-        <Text className="text-sm text-muted-foreground">
-          <Text className="font-semibold text-foreground">{watched?.count ?? 0}</Text> watched
-        </Text>
-        <Text className="text-sm text-muted-foreground">
-          <Text className="font-semibold text-foreground">{watchlist?.count ?? 0}</Text> watchlist
-        </Text>
       </View>
 
       {/* Tab Switcher */}
@@ -94,40 +162,34 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      {/* Grid */}
+      {/* List */}
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        numColumns={3}
         renderItem={({ item }) => (
-          <View className="flex-1 p-1.5">
-            {item.poster ? (
-              <Image
-                source={{ uri: posterUrl(item.poster, "w185")! }}
-                className="aspect-[2/3] w-full rounded-md bg-muted"
-                contentFit="cover"
-                onError={(error) =>
-                  logImageError(
-                    "profile poster",
-                    posterUrl(item.poster, "w185"),
-                    error,
-                  )
-                }
-              />
-            ) : (
-              <View className="aspect-[2/3] w-full rounded-md bg-muted items-center justify-center">
-                <Text className="text-xs text-muted-foreground">No img</Text>
-              </View>
-            )}
-            <Text className="mt-0.5 text-xs text-foreground" numberOfLines={1}>
-              {item.title}
-            </Text>
-            {item.subtitle ? (
-              <Text className="text-xs text-muted-foreground">{item.subtitle}</Text>
-            ) : null}
+          <View className="px-4 pb-3">
+            <SwipeActionCard
+              disableSwipeRight={true}
+              disableSwipeLeft={false}
+              rightLabel="Remove"
+              onSwipeLeft={() => removeMutation.mutate(item.id)}
+            >
+              <PressableScale
+                onPress={() => setSelectedItem(item.raw)}
+                scale={0.985}
+                shadow
+              >
+                <ProfileListRow
+                  media={item.media}
+                  rating={activeTab === "watched" ? item.raw.rating ?? null : null}
+                  dateLabel={item.subtitle ?? null}
+                  isWatched={activeTab === "watched"}
+                />
+              </PressableScale>
+            </SwipeActionCard>
           </View>
         )}
-        contentContainerClassName="px-2 pt-2"
+        contentContainerClassName="pt-2 pb-6"
         ListEmptyComponent={
           <View className="items-center pt-20">
             <Text className="text-muted-foreground">
@@ -137,6 +199,27 @@ export default function ProfileScreen() {
             </Text>
           </View>
         }
+      />
+
+      <MediaDetailSheet
+        isOpen={selectedItem !== null}
+        mediaId={selectedItem?.media?.tmdb_id ?? null}
+        mediaType={(selectedItem?.media?.media_type ?? "movie") as "movie" | "series"}
+        fallbackTitle={selectedItem?.media?.title ?? undefined}
+        fallbackPoster={selectedItem?.media?.poster_path ?? null}
+        fallbackOverview={selectedItem?.media?.overview ?? null}
+        fallbackReleaseDate={selectedItem?.media?.release_date ?? null}
+        fallbackTmdbRating={selectedItem?.media?.tmdb_rating ?? null}
+        isInWatchlist={activeTab === "watchlist"}
+        isWatched={activeTab === "watched"}
+        watchedRating={
+          activeTab === "watched" ? (selectedItem as WatchedMoviePublic | null)?.rating ?? null : null
+        }
+        collections={[]}
+        onAddToWatchlist={() => {}}
+        onMarkWatched={() => {}}
+        onAddToCollection={() => {}}
+        onClose={() => setSelectedItem(null)}
       />
     </SafeAreaView>
   );

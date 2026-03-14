@@ -72,7 +72,7 @@ export default function SocialScreen() {
   const requestCount = followRequests?.count ?? 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background">
       <View className="px-4 py-3 gap-2">
         <Input
           placeholder="Search users..."

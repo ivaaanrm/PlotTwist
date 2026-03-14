@@ -65,7 +65,7 @@ export default function CollectionsScreen() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background">
       <FlatList
         data={collections?.data ?? []}
         keyExtractor={(item) => item.id}

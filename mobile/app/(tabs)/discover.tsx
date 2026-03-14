@@ -18,6 +18,7 @@ import type {
 import { DiscoverCard } from "@/components/DiscoverCard";
 import { MediaDetailSheet } from "@/components/MediaDetailSheet";
 import { showCollectionPicker } from "@/lib/collection-picker";
+import { SwipeActionCard } from "@/components/SwipeActionCard";
 
 export default function DiscoverScreen() {
   const queryClient = useQueryClient();
@@ -146,7 +147,7 @@ export default function DiscoverScreen() {
     : trendingQuery.isLoading;
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background">
       <FlatList
         data={displayResults ?? []}
         keyExtractor={(item) => `${item.external_id}-${item.media_type}`}
@@ -157,42 +158,58 @@ export default function DiscoverScreen() {
 
           return (
             <View className="px-4 pb-3">
-              <DiscoverCard
-                movie={item}
-                isInWatchlist={isInWatchlist}
-                isWatched={isWatched}
-                isAddingToWatchlist={
-                  watchlistActionTmdbId === tmdbId && addToWatchlistMutation.isPending
-                }
-                isMarkingWatched={
-                  watchedActionTmdbId === tmdbId && markAsWatchedMutation.isPending
-                }
-                onPress={() => {
-                  setOpenRatingOnSelect(false);
-                  setSelectedMovie(item);
-                }}
-                onAddToWatchlist={() => {
+              <SwipeActionCard
+                disableSwipeRight={isInWatchlist || isWatched}
+                disableSwipeLeft={isWatched}
+                onSwipeRight={() => {
+                  if (isInWatchlist || isWatched) return;
                   setWatchlistActionTmdbId(tmdbId);
                   addToWatchlistMutation.mutate(tmdbId);
                 }}
-                onMarkAsWatched={() => {
+                onSwipeLeft={() => {
+                  if (isWatched) return;
                   setWatchedActionTmdbId(tmdbId);
                   setOpenRatingOnSelect(true);
                   setSelectedMovie(item);
                 }}
-                onAddToCollection={() => {
-                  showCollectionPicker({
-                    collections: collections?.data ?? [],
-                    onSelect: (collectionId) => {
-                      addToCollectionMutation.mutate({
-                        collectionId,
-                        tmdbId,
-                      });
-                    },
-                  });
-                }}
-                hasCollections={(collections?.data?.length ?? 0) > 0}
-              />
+              >
+                <DiscoverCard
+                  movie={item}
+                  isInWatchlist={isInWatchlist}
+                  isWatched={isWatched}
+                  isAddingToWatchlist={
+                    watchlistActionTmdbId === tmdbId && addToWatchlistMutation.isPending
+                  }
+                  isMarkingWatched={
+                    watchedActionTmdbId === tmdbId && markAsWatchedMutation.isPending
+                  }
+                  onPress={() => {
+                    setOpenRatingOnSelect(false);
+                    setSelectedMovie(item);
+                  }}
+                  onAddToWatchlist={() => {
+                    setWatchlistActionTmdbId(tmdbId);
+                    addToWatchlistMutation.mutate(tmdbId);
+                  }}
+                  onMarkAsWatched={() => {
+                    setWatchedActionTmdbId(tmdbId);
+                    setOpenRatingOnSelect(true);
+                    setSelectedMovie(item);
+                  }}
+                  onAddToCollection={() => {
+                    showCollectionPicker({
+                      collections: collections?.data ?? [],
+                      onSelect: (collectionId) => {
+                        addToCollectionMutation.mutate({
+                          collectionId,
+                          tmdbId,
+                        });
+                      },
+                    });
+                  }}
+                  hasCollections={(collections?.data?.length ?? 0) > 0}
+                />
+              </SwipeActionCard>
             </View>
           );
         }}
