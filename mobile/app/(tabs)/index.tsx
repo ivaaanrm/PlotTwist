@@ -142,7 +142,7 @@ export default function FeedScreen() {
         data={feedItems}
         keyExtractor={(item) => item.collection_item.id}
         renderItem={({ item }) => (
-          <View className="px-4 py-2">
+          <View className="px-4 pt-1 pb-2">
             <SwipeActionCard
               disableSwipeRight={
                 typeof item.collection_item.media?.tmdb_id === "number" &&

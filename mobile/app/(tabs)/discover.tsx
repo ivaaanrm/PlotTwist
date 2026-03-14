@@ -157,7 +157,7 @@ export default function DiscoverScreen() {
           const isWatched = watchedByTmdbId.has(tmdbId);
 
           return (
-            <View className="px-4 pb-3">
+            <View className="px-4 pb-2">
               <SwipeActionCard
                 disableSwipeRight={isInWatchlist || isWatched}
                 disableSwipeLeft={isWatched}
@@ -252,7 +252,7 @@ export default function DiscoverScreen() {
                     : "text-muted-foreground"
                 }`}
               >
-                <Monitor size={14} color={mediaType === "movie" ? "#0f172a" : "#71717a"} />
+                <Monitor size={14} color={mediaType === "movie" ? "#fafafa" : "#71717a"} />
                 <Text className="text-sm font-medium">Movies</Text>
               </Pressable>
               <Pressable
@@ -263,7 +263,7 @@ export default function DiscoverScreen() {
                     : "text-muted-foreground"
                 }`}
               >
-                <Tv size={14} color={mediaType === "series" ? "#0f172a" : "#71717a"} />
+                <Tv size={14} color={mediaType === "series" ? "#fafafa" : "#71717a"} />
                 <Text className="text-sm font-medium">Series</Text>
               </Pressable>
             </View>

@@ -38,9 +38,9 @@ export function SwipeActionCard({
 
     return (
       <Animated.View style={{ opacity }} className="justify-center pl-4">
-        <View className="w-24 h-14 rounded-xl bg-primary items-center justify-center gap-1">
+        <View className="w-24 h-14 rounded-xl bg-[#E11D48] items-center justify-center gap-1">
           <BookmarkPlus size={18} color="#fafafa" />
-          <Text className="text-[11px] font-semibold text-primary-foreground">
+          <Text className="text-[11px] font-semibold text-white">
             {leftLabel}
           </Text>
         </View>
@@ -60,9 +60,9 @@ export function SwipeActionCard({
 
     return (
       <Animated.View style={{ opacity }} className="justify-center items-end pr-4">
-        <View className="w-24 h-14 rounded-xl bg-secondary items-center justify-center gap-1">
-          <Star size={18} color="#0f172a" />
-          <Text className="text-[11px] font-semibold text-foreground">
+        <View className="w-24 h-14 rounded-xl bg-white/10 items-center justify-center gap-1">
+          <Star size={18} color="#fafafa" />
+          <Text className="text-[11px] font-semibold text-white">
             {rightLabel}
           </Text>
         </View>
@@ -92,7 +92,7 @@ export function SwipeActionCard({
         swipeRef.current?.close();
       }}
       friction={2}
-      containerStyle={{ paddingVertical: 4 }}
+      containerStyle={{ paddingVertical: 2 }}
       enabled={!(disableSwipeRight && disableSwipeLeft)}
     >
       {children}

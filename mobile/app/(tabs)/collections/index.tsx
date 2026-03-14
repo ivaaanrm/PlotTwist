@@ -1,57 +1,35 @@
-import { View, Text, FlatList, Pressable } from "react-native";
+import { View, Text, FlatList } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Plus } from "lucide-react-native";
-import { Image } from "expo-image";
 
 import { api } from "@/lib/api-client";
 import type { CollectionListPublic, CollectionPublic } from "@/lib/types";
-import { posterUrl } from "@/lib/image-urls";
-import { logImageError } from "@/lib/image-debug";
+import { TicketCard } from "@/components/TicketCard";
 
 function CollectionCard({ collection }: { collection: CollectionPublic }) {
   const router = useRouter();
   const firstPoster = collection.cover_posters?.find(Boolean);
 
   return (
-    <Pressable
-      className="flex-row gap-3 px-4 py-3 border-b border-border"
+    <TicketCard
+      title={collection.name}
+      posterPath={firstPoster ?? null}
       onPress={() => router.push(`/(tabs)/collections/${collection.id}`)}
-    >
-      {firstPoster ? (
-        <Image
-          source={{ uri: posterUrl(firstPoster, "w185")! }}
-          className="w-14 h-20 rounded-md bg-muted"
-          contentFit="cover"
-          onError={(error) =>
-            logImageError(
-              "collection cover",
-              posterUrl(firstPoster, "w185"),
-              error,
-            )
-          }
-        />
-      ) : (
-        <View className="w-14 h-20 rounded-md bg-muted items-center justify-center">
-          <Text className="text-xs text-muted-foreground">No img</Text>
-        </View>
-      )}
-      <View className="flex-1 justify-center gap-0.5">
-        <Text className="text-base font-semibold text-foreground">
-          {collection.name}
-        </Text>
-        {collection.description ? (
-          <Text className="text-sm text-muted-foreground" numberOfLines={1}>
-            {collection.description}
+      meta={
+        <View className="gap-1">
+          {collection.description ? (
+            <Text className="text-xs text-white/60" numberOfLines={1}>
+              {collection.description}
+            </Text>
+          ) : null}
+          <Text className="text-[11px] text-white/60">
+            {collection.item_count} item{collection.item_count !== 1 ? "s" : ""}
+            {collection.is_collaborative ? " · Collaborative" : ""}
           </Text>
-        ) : null}
-        <Text className="text-xs text-muted-foreground">
-          {collection.item_count} item{collection.item_count !== 1 ? "s" : ""}
-          {collection.is_collaborative ? " · Collaborative" : ""}
-        </Text>
-      </View>
-    </Pressable>
+        </View>
+      }
+    />
   );
 }
 
@@ -69,7 +47,11 @@ export default function CollectionsScreen() {
       <FlatList
         data={collections?.data ?? []}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <CollectionCard collection={item} />}
+        renderItem={({ item }) => (
+          <View className="px-4 pb-2">
+            <CollectionCard collection={item} />
+          </View>
+        )}
         ListEmptyComponent={
           <View className="items-center pt-20">
             <Text className="text-muted-foreground">

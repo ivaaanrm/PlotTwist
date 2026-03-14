@@ -110,6 +110,8 @@ export function MediaDetailSheet({
       ref={sheetRef}
       snapPoints={snapPoints}
       onDismiss={onClose}
+      backgroundStyle={{ backgroundColor: "#09090b" }}
+      handleIndicatorStyle={{ backgroundColor: "#27272a" }}
       backdropComponent={(props) => (
         <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
       )}
@@ -163,6 +165,11 @@ export function MediaDetailSheet({
                     <Text className="text-xs text-muted-foreground">TMDB {tmdbRating}</Text>
                   </View>
                 ) : null}
+                {data?.director ? (
+                  <Text className="text-xs text-muted-foreground">
+                    Director: {data.director}
+                  </Text>
+                ) : null}
                 {data?.genres?.length ? (
                   <View className="flex-row flex-wrap gap-1">
                     {data.genres.slice(0, 4).map((genre) => (
@@ -209,7 +216,7 @@ export function MediaDetailSheet({
                   onPress={handleAddToCollection}
                   className="items-center justify-center rounded-xl border border-input px-3"
                 >
-                  <FolderPlus size={16} color="#0f172a" />
+                  <FolderPlus size={16} color="#fafafa" />
                 </Pressable>
               ) : null}
             </View>

@@ -18,6 +18,7 @@ import { MediaDetailSheet } from "@/components/MediaDetailSheet";
 import { PressableScale } from "@/components/PressableScale";
 import { SwipeActionCard } from "@/components/SwipeActionCard";
 import { ProfileListRow } from "@/components/ProfileListRow";
+import { formatDate } from "@/lib/media";
 
 type Tab = "watched" | "watchlist";
 
@@ -66,19 +67,17 @@ export default function ProfileScreen() {
     activeTab === "watched"
       ? (watched?.data ?? []).map((w) => ({
           id: w.id,
-          title: w.media?.title ?? "Unknown",
-          poster: w.media?.poster_path,
-          subtitle: w.rating ? `${"★".repeat(Math.round(w.rating))} ${w.rating}` : undefined,
           media: w.media ?? null,
           raw: w,
+          dateLabel: w.watched_at ? `Watched ${formatDate(w.watched_at)}` : null,
         }))
       : (watchlist?.data ?? []).map((w) => ({
           id: w.id,
-          title: w.media?.title ?? "Unknown",
-          poster: w.media?.poster_path,
-          subtitle: w.media?.release_date?.slice(0, 4),
           media: w.media ?? null,
           raw: w,
+          dateLabel: w.media?.release_date
+            ? `Released ${w.media.release_date.slice(0, 4)}`
+            : null,
         }));
 
   const removeMutation = useMutation({
@@ -113,7 +112,7 @@ export default function ProfileScreen() {
             </View>
           </View>
           <Pressable onPress={() => router.push("/settings")}>
-            <Settings size={20} color="#0f172a" />
+            <Settings size={20} color="#fafafa" />
           </Pressable>
         </View>
 
@@ -167,7 +166,7 @@ export default function ProfileScreen() {
         data={items}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View className="px-4 pb-3">
+          <View className="px-4 pb-2">
             <SwipeActionCard
               disableSwipeRight={true}
               disableSwipeLeft={false}
@@ -182,7 +181,7 @@ export default function ProfileScreen() {
                 <ProfileListRow
                   media={item.media}
                   rating={activeTab === "watched" ? item.raw.rating ?? null : null}
-                  dateLabel={item.subtitle ?? null}
+                  dateLabel={item.dateLabel ?? null}
                   isWatched={activeTab === "watched"}
                 />
               </PressableScale>

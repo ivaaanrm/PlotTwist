@@ -1,11 +1,9 @@
-import { Text, View } from "react-native";
-import { Image } from "expo-image";
 import { Star } from "lucide-react-native";
 
 import type { MoviePublic } from "@/lib/types";
-import { posterUrl } from "@/lib/image-urls";
-import { logImageError } from "@/lib/image-debug";
-import { formatDate, formatRating, formatTmdbRating } from "@/lib/media";
+import { formatRating, formatTmdbRating } from "@/lib/media";
+import { TicketCard } from "@/components/TicketCard";
+import { Text, View } from "react-native";
 
 type ProfileListRowProps = {
   media: MoviePublic | null | undefined;
@@ -26,56 +24,36 @@ export function ProfileListRow({
   const tmdbRating = formatTmdbRating(media?.tmdb_rating);
 
   return (
-    <View className="flex-row items-center gap-3 px-4 py-2 rounded-2xl border border-border bg-card">
-      <View className="w-[64px] h-[86px] rounded-xl overflow-hidden bg-muted">
-        {media?.poster_path ? (
-          <Image
-            source={{ uri: posterUrl(media.poster_path, "w185")! }}
-            className="w-full h-full"
-            contentFit="cover"
-            onError={(error) =>
-              logImageError(
-                "profile row poster",
-                posterUrl(media.poster_path, "w185"),
-                error,
-              )
-            }
-          />
-        ) : (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-xs text-muted-foreground">No img</Text>
-          </View>
-        )}
-      </View>
-
-      <View className="flex-1 gap-1">
-        <Text className="text-[14px] font-semibold text-foreground" numberOfLines={1}>
-          {media?.title ?? "Unknown"}
-        </Text>
-        {dateLabel ? (
-          <Text className="text-[11px] text-muted-foreground">{dateLabel}</Text>
-        ) : null}
+    <TicketCard
+      title={media?.title ?? "Unknown"}
+      posterPath={media?.poster_path}
+      meta={
+        dateLabel ? (
+          <Text className="text-[11px] text-white/60">{dateLabel}</Text>
+        ) : null
+      }
+      ratingRow={
         <View className="flex-row items-center gap-2">
           {isWatched && userRating ? (
             <View className="flex-row items-center gap-1">
               <Star size={12} color={AMBER} fill={AMBER} />
-              <Text className="text-[11px] font-semibold text-amber-600">
+              <Text className="text-[11px] font-semibold text-amber-400">
                 {userRating}
               </Text>
-              <Text className="text-[9px] text-muted-foreground uppercase">YOU</Text>
+              <Text className="text-[9px] text-white/60 uppercase">YOU</Text>
             </View>
           ) : null}
           {tmdbRating ? (
             <View className="flex-row items-center gap-1">
-              <Star size={12} color="#71717a" />
-              <Text className="text-[11px] font-semibold text-foreground">
+              <Star size={12} color="#9ca3af" />
+              <Text className="text-[11px] font-semibold text-white">
                 {tmdbRating}
               </Text>
-              <Text className="text-[9px] text-muted-foreground uppercase">TMDB</Text>
+              <Text className="text-[9px] text-white/60 uppercase">TMDB</Text>
             </View>
           ) : null}
         </View>
-      </View>
-    </View>
+      }
+    />
   );
 }

@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { View, Text, FlatList, Pressable } from "react-native";
+import { View, Text, FlatList } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { api } from "@/lib/api-client";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
+import { PressableScale } from "@/components/PressableScale";
+import { TicketCard } from "@/components/TicketCard";
 import type {
   UsersPublic,
   UserPublic,
@@ -26,28 +27,32 @@ function UserRow({ user }: { user: UserPublic }) {
   });
 
   return (
-    <View className="flex-row items-center px-4 py-3 border-b border-border">
-      <View className="w-10 h-10 rounded-full bg-secondary items-center justify-center mr-3">
-        <Text className="text-base font-semibold text-secondary-foreground">
-          {(user.full_name ?? user.username)?.[0]?.toUpperCase()}
-        </Text>
-      </View>
-      <View className="flex-1">
-        <Text className="text-base font-medium text-foreground">
-          {user.full_name ?? user.username}
-        </Text>
-        <Text className="text-sm text-muted-foreground">@{user.username}</Text>
-      </View>
-      <Pressable
-        onPress={() => followMutation.mutate()}
-        disabled={followMutation.isPending}
-        className="bg-primary px-4 py-1.5 rounded-lg"
-      >
-        <Text className="text-sm font-medium text-primary-foreground">
-          {followMutation.isPending ? "..." : "Follow"}
-        </Text>
-      </Pressable>
-    </View>
+    <TicketCard
+      title={user.full_name ?? user.username}
+      leftSlot={
+        <View className="flex-1 items-center justify-center">
+          <View className="w-12 h-12 rounded-full bg-white/10 items-center justify-center">
+            <Text className="text-base font-semibold text-white">
+              {(user.full_name ?? user.username)?.[0]?.toUpperCase()}
+            </Text>
+          </View>
+        </View>
+      }
+      meta={<Text className="text-xs text-white/60">@{user.username}</Text>}
+      rightSlot={
+        <PressableScale
+          onPress={() => followMutation.mutate()}
+          disabled={followMutation.isPending}
+          className="bg-[#E11D48] px-4 py-1.5 rounded-full"
+          scale={0.97}
+          activeOpacity={0.85}
+        >
+          <Text className="text-xs font-medium text-white">
+            {followMutation.isPending ? "..." : "Follow"}
+          </Text>
+        </PressableScale>
+      }
+    />
   );
 }
 
@@ -88,7 +93,11 @@ export default function SocialScreen() {
       <FlatList
         data={searchResults?.data ?? []}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <UserRow user={item} />}
+        renderItem={({ item }) => (
+          <View className="px-4 pb-2">
+            <UserRow user={item} />
+          </View>
+        )}
         ListEmptyComponent={
           <View className="items-center pt-20">
             <Text className="text-muted-foreground">

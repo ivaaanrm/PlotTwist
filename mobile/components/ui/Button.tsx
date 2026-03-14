@@ -46,7 +46,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === "default" ? "#fafafa" : "#18181b"}
+          color={variant === "default" ? "#18181b" : "#fafafa"}
           className="mr-2"
         />
       ) : null}

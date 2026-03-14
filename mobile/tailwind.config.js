@@ -6,34 +6,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: "hsl(240 5.9% 90%)",
-        input: "hsl(240 5.9% 90%)",
-        ring: "hsl(240 5.9% 10%)",
-        background: "hsl(0 0% 100%)",
-        foreground: "hsl(240 10% 3.9%)",
+        border: "#27272a",
+        input: "#27272a",
+        ring: "#d4d4d8",
+        background: "#09090b",
+        foreground: "#fafafa",
         primary: {
-          DEFAULT: "hsl(240 5.9% 10%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT: "#fafafa",
+          foreground: "#18181b",
         },
         secondary: {
-          DEFAULT: "hsl(240 4.8% 95.9%)",
-          foreground: "hsl(240 5.9% 10%)",
+          DEFAULT: "#27272a",
+          foreground: "#fafafa",
         },
         destructive: {
-          DEFAULT: "hsl(0 84.2% 60.2%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT: "#7f1d1d",
+          foreground: "#fafafa",
         },
         muted: {
-          DEFAULT: "hsl(240 4.8% 95.9%)",
-          foreground: "hsl(240 3.8% 46.1%)",
+          DEFAULT: "#27272a",
+          foreground: "#a1a1aa",
         },
         accent: {
-          DEFAULT: "hsl(240 4.8% 95.9%)",
-          foreground: "hsl(240 5.9% 10%)",
+          DEFAULT: "#27272a",
+          foreground: "#fafafa",
         },
         card: {
-          DEFAULT: "hsl(0 0% 100%)",
-          foreground: "hsl(240 10% 3.9%)",
+          DEFAULT: "#09090b",
+          foreground: "#fafafa",
         },
       },
     },
