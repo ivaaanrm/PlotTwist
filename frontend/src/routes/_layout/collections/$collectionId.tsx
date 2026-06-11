@@ -206,7 +206,7 @@ function InviteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Manage Collaborators</DialogTitle>
           <DialogDescription>

@@ -32,12 +32,12 @@ function Layout() {
   return (
     <SidebarProvider>
       {/* Desktop sidebar — hidden on mobile */}
-      <div className="hidden md:contents">
+      <div className="hidden lg:contents">
         <AppSidebar />
       </div>
       <SidebarInset>
         {/* Mobile header — visible only on mobile */}
-        <header className="md:hidden sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between border-b bg-card/80 backdrop-blur-xl px-4">
+        <header className="lg:hidden sticky top-0 z-50 flex min-h-14 shrink-0 items-center justify-between border-b bg-card/80 backdrop-blur-xl px-4 pt-[env(safe-area-inset-top)]">
           <Logo variant="full" />
           <div className="flex items-center gap-1">
             <Button
@@ -72,7 +72,7 @@ function Layout() {
           </div>
         </header>
         {/* Desktop header with sidebar trigger — hidden on mobile */}
-        <header className="hidden md:flex sticky top-0 z-50 h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="hidden lg:flex sticky top-0 z-50 h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-1">
             <NotificationsMenu />
@@ -96,12 +96,12 @@ function Layout() {
             </Button>
           </div>
         </header>
-        <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
+        <main className="flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:p-8 lg:pb-8">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>
         </main>
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <Footer />
         </div>
       </SidebarInset>

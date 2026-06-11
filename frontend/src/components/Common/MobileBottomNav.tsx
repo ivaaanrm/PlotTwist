@@ -14,7 +14,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-50 border-t bg-card/80 backdrop-blur-xl md:hidden"
+      className="fixed bottom-0 inset-x-0 z-50 border-t bg-card/80 backdrop-blur-xl lg:hidden"
       aria-label="Main navigation"
     >
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
@@ -25,7 +25,7 @@ export function MobileBottomNav() {
             <RouterLink
               key={item.path}
               to={item.path}
-              className="flex flex-1 flex-col items-center justify-center transition-all duration-200"
+              className="flex h-full min-h-11 flex-1 flex-col items-center justify-center transition-all duration-200"
             >
               <div
                 className={`p-2 rounded-full transition-colors ${

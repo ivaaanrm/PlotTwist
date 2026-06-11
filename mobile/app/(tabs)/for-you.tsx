@@ -35,6 +35,7 @@ import type {
 } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { MediaDetailSheet } from "@/components/MediaDetailSheet";
+import { PressableScale } from "@/components/PressableScale";
 import { posterUrl } from "@/lib/image-urls";
 import { showCollectionPicker } from "@/lib/collection-picker";
 
@@ -255,113 +256,143 @@ function WizardCard({
         showsVerticalScrollIndicator={false}
       >
         {/* Progress bar */}
-        <View style={{ gap: 8 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Text style={{ fontSize: 12, color: "#71717a" }}>
-              Question {question.step} of {question.total_steps}
+        <View style={{ gap: 10 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: "#a1a1aa", textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Question {question.step}/{question.total_steps}
             </Text>
-            <Text style={{ fontSize: 12, color: "#71717a" }}>
+            <Text style={{ fontSize: 13, fontWeight: "800", color: "#e11d48" }}>
               {Math.round(progress)}%
             </Text>
           </View>
-          <View style={{ height: 4, borderRadius: 2, backgroundColor: "#27272a", overflow: "hidden" }}>
-            <View style={{ height: 4, width: `${progress}%`, borderRadius: 2, backgroundColor: "#e11d48" }} />
+          <View style={{ height: 12, borderRadius: 6, backgroundColor: "#1e1e24", overflow: "hidden", borderWidth: 1, borderColor: "#2a2a36" }}>
+            <View style={{ 
+              height: "100%", 
+              width: `${progress}%`, 
+              borderRadius: 6, 
+              backgroundColor: "#e11d48",
+              shadowColor: "#fff",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+            }}>
+              {/* Glossy shine */}
+              <View style={{ position: "absolute", top: 1, left: 4, right: 4, height: 3, borderRadius: 1.5, backgroundColor: "rgba(255,255,255,0.15)" }} />
+            </View>
           </View>
         </View>
 
         {/* Question */}
-        <View style={{ gap: 20, borderRadius: 20, borderWidth: 1, borderColor: "#27272a", backgroundColor: "#111114", padding: 20, overflow: "hidden" }}>
+        <View style={{ gap: 24, borderRadius: 28, borderWidth: 2, borderColor: "#27272a", backgroundColor: "#111114", padding: 24, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.3, shadowRadius: 20 }}>
           {/* Thinking overlay */}
           {isSubmitting && (
             <View style={{
               position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-              zIndex: 10, backgroundColor: "rgba(9,9,11,0.75)",
-              borderRadius: 20, alignItems: "center", justifyContent: "center", gap: 10
+              zIndex: 10, backgroundColor: "rgba(9,9,11,0.9)",
+              borderRadius: 28, alignItems: "center", justifyContent: "center", gap: 16
             }}>
-              <ActivityIndicator size="small" color="#e11d48" />
-              <Text style={{ fontSize: 13, fontWeight: "500", color: "#fafafa" }}>Thinking…</Text>
+              <View style={{
+                width: 64, height: 64, borderRadius: 32,
+                backgroundColor: "rgba(225,29,72,0.15)",
+                alignItems: "center", justifyContent: "center",
+                borderWidth: 2, borderColor: "rgba(225,29,72,0.3)",
+              }}>
+                <ActivityIndicator size="large" color="#e11d48" />
+              </View>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: "#fafafa", letterSpacing: 0.4 }}>Curating choices…</Text>
             </View>
           )}
 
-          <Text style={{ fontSize: 18, fontWeight: "600", color: "#fafafa", lineHeight: 26 }}>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: "#fafafa", lineHeight: 32, textAlign: "center" }}>
             {question.question}
           </Text>
 
           {/* Multi-select chips */}
           {question.options ? (
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: 14 }}>
               {question.options.map((option) => {
                 const isSelected = selected.includes(option);
                 return (
-                  <Pressable
+                  <PressableScale
                     key={option}
                     onPress={() => toggleChip(option)}
                     disabled={isSubmitting}
+                    scale={0.96}
+                    activeOpacity={1}
                     style={({ pressed }) => ({
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 12,
-                      borderRadius: 14,
-                      borderWidth: 1.5,
+                      gap: 16,
+                      borderRadius: 18,
+                      borderWidth: 2,
                       borderColor: isSelected ? "#e11d48" : "#2a2a36",
-                      backgroundColor: isSelected ? "rgba(225,29,72,0.07)" : "#0d0d10",
-                      paddingHorizontal: 16,
-                      paddingVertical: 13,
-                      opacity: isSubmitting ? 0.5 : pressed ? 0.75 : 1,
+                      backgroundColor: isSelected ? "rgba(225,29,72,0.12)" : "#18181b",
+                      paddingHorizontal: 18,
+                      paddingVertical: 16,
+                      borderBottomWidth: isSelected ? 2 : 4,
+                      marginTop: isSelected ? 2 : 0,
+                      opacity: isSubmitting ? 0.5 : 1,
                     })}
                   >
-                    {/* Checkbox */}
+                    {/* Circle Indicator */}
                     <View style={{
-                      width: 22, height: 22, borderRadius: 11,
-                      borderWidth: isSelected ? 0 : 1.5,
-                      borderColor: "#3f3f46",
+                      width: 28, height: 28, borderRadius: 14,
+                      borderWidth: 2.5,
+                      borderColor: isSelected ? "#e11d48" : "#3f3f46",
                       backgroundColor: isSelected ? "#e11d48" : "transparent",
                       alignItems: "center", justifyContent: "center",
                       flexShrink: 0,
                     }}>
-                      {isSelected && <Check size={13} color="#fff" strokeWidth={3} />}
+                      {isSelected && <Check size={16} color="#fff" strokeWidth={4} />}
                     </View>
 
                     <Text style={{
                       flex: 1,
-                      fontSize: 14,
-                      fontWeight: isSelected ? "600" : "400",
-                      color: isSelected ? "#f1f1f1" : "#a1a1aa",
-                      lineHeight: 20,
+                      fontSize: 17,
+                      fontWeight: isSelected ? "700" : "600",
+                      color: isSelected ? "#ffffff" : "#d4d4d8",
+                      lineHeight: 24,
                     }}>
                       {option}
                     </Text>
-                  </Pressable>
+                  </PressableScale>
                 );
               })}
 
               {/* Continue button — appears when at least one selected */}
               {hasSelection && (
-                <Pressable
+                <PressableScale
                   onPress={handleSubmitChips}
                   disabled={isSubmitting}
+                  scale={0.96}
                   style={({ pressed }) => ({
-                    marginTop: 4,
-                    borderRadius: 14,
+                    marginTop: 8,
+                    borderRadius: 20,
                     backgroundColor: "#e11d48",
-                    paddingVertical: 14,
+                    paddingVertical: 18,
                     alignItems: "center",
-                    opacity: pressed ? 0.85 : 1,
+                    borderBottomWidth: pressed ? 2 : 4,
+                    borderColor: "#9f1239",
+                    marginTop: pressed ? 10 : 8,
+                    shadowColor: "#e11d48",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 12,
                   })}
                 >
-                  <Text style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
+                  <Text style={{ fontSize: 18, fontWeight: "800", color: "#fff", textTransform: "uppercase", letterSpacing: 0.5 }}>
                     Continue
-                    {selected.length > 1 ? ` (${selected.length} selected)` : ""}
+                    {selected.length > 1 ? ` (${selected.length})` : ""}
                   </Text>
-                </Pressable>
+                </PressableScale>
               )}
             </View>
           ) : null}
 
           {/* Free text fallback */}
-          <View style={{ flexDirection: "row", gap: 10 }}>
+          <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
             <TextInput
-              placeholder={question.options ? "Or type your own answer…" : "Type your answer…"}
+              placeholder={question.options ? "Something else?" : "Type your answer…"}
               placeholderTextColor="#52525b"
               value={freeText}
               onChangeText={setFreeText}
@@ -371,31 +402,35 @@ function WizardCard({
               style={{
                 flex: 1,
                 backgroundColor: "#0d0d10",
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 13,
+                borderRadius: 18,
+                paddingHorizontal: 20,
+                paddingVertical: 16,
                 color: "#fafafa",
-                fontSize: 14,
-                borderWidth: 1,
+                fontSize: 16,
+                fontWeight: "500",
+                borderWidth: 2,
                 borderColor: "#2a2a36",
               }}
             />
-            <Pressable
+            <PressableScale
               onPress={handleSubmitText}
               disabled={!freeText.trim() || isSubmitting}
+              scale={0.9}
               style={({ pressed }) => ({
-                width: 48, height: 48, borderRadius: 12,
+                width: 56, height: 56, borderRadius: 18,
                 backgroundColor: "#e11d48",
                 alignItems: "center", justifyContent: "center",
-                opacity: !freeText.trim() || isSubmitting ? 0.35 : pressed ? 0.8 : 1,
+                borderBottomWidth: !freeText.trim() || isSubmitting ? 0 : (pressed ? 2 : 4),
+                borderColor: "#9f1239",
+                opacity: !freeText.trim() || isSubmitting ? 0.35 : 1,
               })}
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <ArrowRight size={18} color="#fff" />
+                <ArrowRight size={24} color="#fff" strokeWidth={3} />
               )}
-            </Pressable>
+            </PressableScale>
           </View>
         </View>
       </ScrollView>

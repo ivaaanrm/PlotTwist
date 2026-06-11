@@ -129,7 +129,7 @@ export function MediaDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto overflow-x-hidden p-0 gap-0">
+      <DialogContent className="sm:max-w-xl sm:max-h-[85vh] overflow-y-auto overflow-x-hidden p-0 pt-[env(safe-area-inset-top)] sm:pt-0 gap-0">
         {/* Header section with poster + title */}
         <div className="flex gap-4 p-5 pb-0">
           <div className="w-28 shrink-0 rounded-lg overflow-hidden shadow-md">
