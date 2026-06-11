@@ -246,7 +246,7 @@ export function NotificationsMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-[300px] sm:w-[360px] p-4 rounded-2xl mx-2 shadow-xl shadow-black/5 dark:shadow-black/20 border border-primary/10"
+        className="w-[calc(100vw-1rem)] max-w-[360px] p-4 rounded-2xl mx-2 shadow-xl shadow-black/5 dark:shadow-black/20 border border-primary/10"
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">

@@ -1,4 +1,5 @@
 import {
+  type Cell,
   type ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -6,12 +7,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react"
-
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -28,10 +30,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+}
+
+function columnLabel<TData, TValue>(cell: Cell<TData, TValue>) {
+  const header = cell.column.columnDef.header
+  return typeof header === "string" ? header : cell.column.id
 }
 
 export function DataTable<TData, TValue>({
@@ -44,51 +52,144 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   })
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
+
+  const toggleRow = (rowId: string) =>
+    setExpandedRows((prev) => ({ ...prev, [rowId]: !prev[rowId] }))
 
   return (
     <div className="flex flex-col gap-4">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
+      {/* Mobile: tappable card list */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {table.getRowModel().rows.length ? (
+          table.getRowModel().rows.map((row) => {
+            const cells = row.getVisibleCells()
+            const actionCells = cells.filter((c) => c.column.id === "actions")
+            const dataCells = cells.filter((c) => c.column.id !== "actions")
+            const keyCells = dataCells.slice(0, 2)
+            const detailCells = dataCells.slice(2)
+            const isExpanded = !!expandedRows[row.id]
+
+            return (
+              <div key={row.id} className="rounded-lg border bg-card">
+                <div className="flex items-stretch">
+                  <button
+                    type="button"
+                    onClick={() => toggleRow(row.id)}
+                    aria-expanded={isExpanded}
+                    disabled={detailCells.length === 0}
+                    className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-3 p-4 text-left"
+                  >
+                    <div className="flex min-w-0 flex-col gap-1 text-sm">
+                      {keyCells.map((cell) => (
+                        <div key={cell.id} className="truncate">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {detailCells.length > 0 && (
+                      <ChevronDown
+                        className={cn(
+                          "size-4 shrink-0 text-muted-foreground transition-transform",
+                          isExpanded && "rotate-180",
                         )}
-                  </TableHead>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                      />
+                    )}
+                  </button>
+                  {actionCells.length > 0 && (
+                    <div className="flex items-center pr-2">
+                      {actionCells.map((cell) => (
+                        <div key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {isExpanded && detailCells.length > 0 && (
+                  <dl className="flex flex-col gap-3 border-t px-4 py-3">
+                    {detailCells.map((cell) => (
+                      <div
+                        key={cell.id}
+                        className="flex items-center justify-between gap-4"
+                      >
+                        <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          {columnLabel(cell)}
+                        </dt>
+                        <dd className="text-sm">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </div>
+            )
+          })
+        ) : (
+          <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">
+            No results found.
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: full table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
-            ))
-          ) : (
-            <TableRow className="hover:bg-transparent">
-              <TableCell
-                colSpan={columns.length}
-                className="h-32 text-center text-muted-foreground"
-              >
-                No results found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  No results found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {table.getPageCount() > 1 && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20">

@@ -702,7 +702,7 @@ function Profile() {
 
       {/* Followers Modal */}
       <Dialog open={followersOpen} onOpenChange={setFollowersOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Followers</DialogTitle>
           </DialogHeader>
@@ -726,7 +726,7 @@ function Profile() {
 
       {/* Following Modal */}
       <Dialog open={followingOpen} onOpenChange={setFollowingOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Following</DialogTitle>
           </DialogHeader>

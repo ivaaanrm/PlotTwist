@@ -25,6 +25,12 @@ const handleApiError = (error: Error) => {
   }
 }
 const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Tab switches re-render from cache instantly instead of refetching
+      staleTime: 5 * 60 * 1000,
+    },
+  },
   queryCache: new QueryCache({
     onError: handleApiError,
   }),
